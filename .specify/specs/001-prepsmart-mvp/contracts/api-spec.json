@@ -429,6 +429,188 @@
           }
         }
       }
+    },
+    "/crisis/{task_id}/logs": {
+      "get": {
+        "tags": ["crisis"],
+        "summary": "Stream agent activity logs",
+        "description": "Returns real-time agent activity logs with emojis for live UI display. Uses Server-Sent Events (SSE) for streaming.",
+        "operationId": "getCrisisLogs",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stream of agent activity logs",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "event": {
+                      "type": "string",
+                      "enum": ["agent_update", "agent_complete", "agent_error", "plan_complete"],
+                      "example": "agent_update"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "agent_name": {"type": "string", "example": "Risk Assessment Agent"},
+                        "agent_emoji": {"type": "string", "example": "🌪️"},
+                        "status": {"type": "string", "enum": ["waiting", "active", "complete", "error"]},
+                        "message": {"type": "string", "example": "Analyzing hurricane risk for Miami, FL..."},
+                        "progress": {"type": "integer", "minimum": 0, "maximum": 100},
+                        "sub_tasks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "example": "└─ Risk Level: EXTREME (95/100)"
+                          }
+                        },
+                        "timestamp": {"type": "string", "format": "date-time"}
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "agent_update": {
+                    "value": "event: agent_update\ndata: {\"agent_name\":\"Risk Assessment Agent\",\"agent_emoji\":\"🌪️\",\"status\":\"active\",\"message\":\"Analyzing hurricane risk for Miami, FL...\",\"progress\":50,\"timestamp\":\"2025-10-28T14:32:15Z\"}\n\n"
+                  },
+                  "agent_complete": {
+                    "value": "event: agent_complete\ndata: {\"agent_name\":\"Risk Assessment Agent\",\"agent_emoji\":\"🌪️\",\"status\":\"complete\",\"message\":\"Risk assessment complete\",\"progress\":100,\"sub_tasks\":[\"└─ Risk Level: EXTREME (95/100)\"],\"timestamp\":\"2025-10-28T14:32:20Z\"}\n\n"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crisis/{task_id}/strategic-plan": {
+      "get": {
+        "tags": ["crisis"],
+        "summary": "Get Strategic Crisis Planning (optional expansion)",
+        "description": "Returns expanded strategic planning guidance for economic crisis mode. Includes unemployment filing, job resources, bill strategies, food assistance programs. Only available for economic_crisis mode.",
+        "operationId": "getStrategicPlan",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Strategic planning guidance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task_id": {"type": "string", "format": "uuid"},
+                    "crisis_mode": {"type": "string", "enum": ["economic_crisis"]},
+                    "strategic_plan": {
+                      "type": "object",
+                      "properties": {
+                        "unemployment_guidance": {
+                          "type": "object",
+                          "properties": {
+                            "filing_steps": {"type": "array", "items": {"type": "string"}},
+                            "state_specific_link": {"type": "string", "format": "uri"},
+                            "estimated_benefit_amount": {"type": "string", "example": "$400-600/week"}
+                          }
+                        },
+                        "job_resources": {
+                          "type": "object",
+                          "properties": {
+                            "resume_templates": {"type": "array", "items": {"type": "string", "format": "uri"}},
+                            "job_boards": {"type": "array", "items": {"type": "string"}},
+                            "interview_prep": {"type": "string", "format": "uri"}
+                          }
+                        },
+                        "bill_payment_strategies": {
+                          "type": "object",
+                          "properties": {
+                            "prioritization_framework": {"type": "string"},
+                            "hardship_letter_templates": {
+                              "type": "object",
+                              "properties": {
+                                "landlord": {"type": "string"},
+                                "credit_card": {"type": "string"},
+                                "utility": {"type": "string"}
+                              }
+                            },
+                            "negotiation_scripts": {"type": "array", "items": {"type": "string"}}
+                          }
+                        },
+                        "food_assistance": {
+                          "type": "object",
+                          "properties": {
+                            "snap_eligibility": {"type": "string"},
+                            "application_link": {"type": "string", "format": "uri"},
+                            "estimated_benefit": {"type": "string", "example": "$600-800/month"},
+                            "food_banks": {"type": "array", "items": {"type": "object"}}
+                          }
+                        },
+                        "long_term_recovery": {
+                          "type": "object",
+                          "properties": {
+                            "financial_recovery_timeline": {"type": "string"},
+                            "credit_protection_tips": {"type": "array", "items": {"type": "string"}},
+                            "savings_rebuild_plan": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - Strategic planning only available for economic_crisis mode",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found or plan not yet generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -477,18 +659,38 @@
             "type": "integer",
             "enum": [50, 100, 200]
           },
-          "financial_situation": {
+          "runtime_questions": {
             "type": "object",
-            "description": "Required for economic_crisis mode",
+            "description": "User responses to runtime questions asked by agents during economic_crisis mode (collected after initial submission)",
             "properties": {
-              "current_income": {"type": "number", "minimum": 0},
-              "monthly_expenses": {"type": "number", "minimum": 0},
-              "available_savings": {"type": "number", "minimum": 0},
-              "debt_obligations": {"type": "number", "minimum": 0},
-              "dependents": {"type": "integer", "minimum": 0},
-              "employment_status": {
+              "primary_concern": {
                 "type": "string",
-                "enum": ["furloughed", "laid_off", "reduced_hours", "unemployed"]
+                "example": "Eviction or foreclosure",
+                "enum": ["Eviction or foreclosure", "Losing utilities", "Can't afford food", "Medical expenses", "Car repossession", "Credit card debt"]
+              },
+              "runway": {
+                "type": "string",
+                "example": "2-4 weeks",
+                "enum": ["Less than 2 weeks", "2-4 weeks", "1-3 months", "3-6 months", "6+ months"]
+              },
+              "top_priority": {
+                "type": "string",
+                "example": "Keep my housing",
+                "enum": ["Keep my housing", "Keep utilities on", "Feed my family", "Keep my car", "Pay urgent medical bills"]
+              },
+              "income_check": {
+                "type": "string",
+                "enum": ["Yes", "No"]
+              },
+              "income_range": {
+                "type": "string",
+                "example": "$500-1500",
+                "enum": ["$0-500", "$500-1500", "$1500-3000", "$3000+"]
+              },
+              "supply_focus": {
+                "type": "string",
+                "example": "Food stockpiling",
+                "enum": ["Food stockpiling", "Medication", "Essential bills only"]
               }
             }
           }

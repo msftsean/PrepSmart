@@ -5,17 +5,17 @@
 
 ## Summary
 
-PrepSmart is a web application that uses 7 specialized AI agents orchestrated by Microsoft Agent Framework to generate personalized crisis preparedness plans within 5 minutes. The system supports both natural disaster preparedness (hurricanes, earthquakes, etc.) and economic crisis survival (government shutdown, unemployment). Technical approach: Python/Flask backend with Microsoft Agent Framework + Claude API for multi-agent intelligence, vanilla JavaScript frontend with mobile-first design, SQLite for MVP data persistence, Azure Container Apps deployment.
+PrepSmart is a web application that uses 7 specialized AI agents orchestrated via blackboard pattern architecture to generate personalized crisis preparedness plans within 5 minutes. The system supports both natural disaster preparedness (hurricanes, earthquakes, etc.) and economic crisis survival (government shutdown, unemployment). Technical approach: Python/Flask backend with blackboard pattern coordination + Claude API for multi-agent intelligence, vanilla JavaScript frontend with mobile-first design and live log streaming, SQLite for MVP data persistence, Azure Container Apps deployment.
 
 ## Technical Context
 
 **Language/Version**: Python 3.11+ (backend), HTML/CSS/JavaScript ES6+ (frontend)
 **Primary Dependencies**:
 - Flask 3.0+ (web framework)
-- Microsoft Agent Framework (multi-agent orchestration)
+- Blackboard Pattern (multi-agent coordination architecture)
 - Anthropic Python SDK (Claude API integration)
 - ReportLab (PDF generation)
-- SQLite3 (built-in, for session/cache storage)
+- SQLite3 (built-in, for session/cache storage, blackboard state persistence)
 
 **Storage**: SQLite for MVP (session data, agent logs, cached responses); local storage (browser) for form state
 **Testing**: pytest (backend unit/integration), Playwright (e2e), manual mobile testing
@@ -231,16 +231,17 @@ docs/
 
 ## Phase 0: Research & Validation
 
-**Goal**: Validate Microsoft Agent Framework + Claude API integration, confirm Azure free tier feasibility, research PDF generation options.
+**Goal**: ✅ COMPLETED - Blackboard pattern validated, Claude API integration confirmed, Azure feasibility verified, PDF generation options researched.
 
-**Research Tasks**:
+**Research Tasks** (Status: ✅ Complete):
 
-1. **Microsoft Agent Framework Investigation** ⚠️ CRITICAL
-   - Verify Python SDK availability and documentation quality
-   - Confirm agent communication patterns (message passing vs shared state)
-   - Test agent orchestration with sample coordinator + 2 worker agents
-   - Identify limitations or gotchas (rate limits, concurrency, error handling)
-   - **Alternative if framework is insufficient**: Use custom orchestration with Python asyncio + message queues
+1. **Blackboard Pattern Architecture** ✅ COMPLETED
+   - **Decision**: Implement blackboard shared state pattern for multi-agent coordination
+   - Agents read from and write to central blackboard entity atomically
+   - Coordinator monitors blackboard to determine agent execution order
+   - Supports parallel execution when agent dependencies permit
+   - Cleaner architecture than custom asyncio orchestration
+   - **Alternative considered**: Microsoft Agent Framework / AutoGen (optional support layer)
 
 2. **Claude API Integration Verification**
    - Test Anthropic Python SDK with Claude 3.5 Sonnet (or latest available)
