@@ -244,9 +244,9 @@ def register_routes(app: Flask) -> None:
             if status == "completed":
                 progress = 100
             elif status == "failed":
-                progress = (completed_agents / total_agents) * 100 if total_agents > 0 else 0
+                progress = int((completed_agents / total_agents) * 100) if total_agents > 0 else 0
             else:
-                progress = (completed_agents / total_agents) * 100 if total_agents > 0 else 0
+                progress = int((completed_agents / total_agents) * 100) if total_agents > 0 else 0
 
             return jsonify({
                 "task_id": task_id,
