@@ -1,0 +1,623 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "PrepSmart API",
+    "description": "Multi-agent crisis preparedness assistant REST API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "PrepSmart Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api",
+      "description": "Local development"
+    },
+    {
+      "url": "https://prepsmart.azurewebsites.net/api",
+      "description": "Production (Azure Container Apps)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "crisis",
+      "description": "Crisis plan generation and retrieval"
+    },
+    {
+      "name": "health",
+      "description": "Service health and status"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Health check endpoint",
+        "description": "Returns service health status and dependency checks",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["healthy", "degraded"]
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "dependencies": {
+                      "type": "object",
+                      "properties": {
+                        "claude_api": {
+                          "type": "string",
+                          "enum": ["up", "down"]
+                        },
+                        "database": {
+                          "type": "string",
+                          "enum": ["up", "down"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crisis/validate-location": {
+      "post": {
+        "tags": ["crisis"],
+        "summary": "Validate ZIP code or location",
+        "description": "Validates user location input and returns normalized location data",
+        "operationId": "validateLocation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "zip_code": {
+                    "type": "string",
+                    "pattern": "^[0-9]{5}$",
+                    "example": "33139"
+                  },
+                  "city": {
+                    "type": "string",
+                    "example": "Miami Beach"
+                  },
+                  "state": {
+                    "type": "string",
+                    "example": "FL"
+                  }
+                },
+                "oneOf": [
+                  {"required": ["zip_code"]},
+                  {"required": ["city", "state"]}
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location validated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid": {
+                      "type": "boolean"
+                    },
+                    "location": {
+                      "type": "object",
+                      "properties": {
+                        "zip_code": {"type": "string"},
+                        "city": {"type": "string"},
+                        "state": {"type": "string"},
+                        "country": {"type": "string"},
+                        "latitude": {"type": "number"},
+                        "longitude": {"type": "number"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid location",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crisis/start": {
+      "post": {
+        "tags": ["crisis"],
+        "summary": "Start crisis plan generation",
+        "description": "Submit crisis profile and initiate multi-agent plan generation",
+        "operationId": "startCrisisPlan",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrisisProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Plan generation started (async processing)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["processing"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Crisis plan generation started. Use task_id to check status."
+                    },
+                    "estimated_time_seconds": {
+                      "type": "integer",
+                      "example": 180
+                    }
+                  },
+                  "required": ["task_id", "status"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crisis/{task_id}/status": {
+      "get": {
+        "tags": ["crisis"],
+        "summary": "Get crisis plan generation status",
+        "description": "Poll for real-time agent activity and progress",
+        "operationId": "getCrisisStatus",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current status of plan generation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["processing", "completed", "failed"]
+                    },
+                    "progress_percentage": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "agents": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AgentStatus"
+                      }
+                    },
+                    "estimated_completion_seconds": {
+                      "type": "integer",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crisis/{task_id}/result": {
+      "get": {
+        "tags": ["crisis"],
+        "summary": "Get complete crisis plan",
+        "description": "Retrieve the fully generated crisis plan (blocks until complete or timeout)",
+        "operationId": "getCrisisResult",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "timeout",
+            "in": "query",
+            "description": "Maximum seconds to wait if still processing (default 30)",
+            "schema": {
+              "type": "integer",
+              "default": 30,
+              "minimum": 0,
+              "maximum": 300
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Complete crisis plan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletePlan"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Plan still processing (timeout reached)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Plan still processing. Please try again."
+                    },
+                    "progress_percentage": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Plan generation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crisis/{task_id}/pdf": {
+      "get": {
+        "tags": ["crisis"],
+        "summary": "Download crisis plan PDF",
+        "description": "Download the crisis plan as a PDF document",
+        "operationId": "downloadPDF",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF file",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string",
+                  "example": "attachment; filename=\"prepsmart-plan-a1b2c3d4.pdf\""
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "PDF generation in progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "PDF generation in progress. Retry in 5 seconds."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found or plan not yet generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CrisisProfileInput": {
+        "type": "object",
+        "required": ["crisis_mode", "specific_threat", "location", "household", "housing_type", "budget_tier"],
+        "properties": {
+          "crisis_mode": {
+            "type": "string",
+            "enum": ["natural_disaster", "economic_crisis"]
+          },
+          "specific_threat": {
+            "type": "string",
+            "example": "hurricane",
+            "description": "hurricane, earthquake, wildfire, flood, tornado, blizzard, government_shutdown, layoff, furlough, unemployment"
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "zip_code": {"type": "string", "pattern": "^[0-9]{5}$"},
+              "city": {"type": "string"},
+              "state": {"type": "string"},
+              "country": {"type": "string", "default": "US"}
+            },
+            "oneOf": [
+              {"required": ["zip_code"]},
+              {"required": ["city", "state"]}
+            ]
+          },
+          "household": {
+            "type": "object",
+            "required": ["adults", "children", "pets"],
+            "properties": {
+              "adults": {"type": "integer", "minimum": 1, "maximum": 20},
+              "children": {"type": "integer", "minimum": 0, "maximum": 20},
+              "pets": {"type": "integer", "minimum": 0, "maximum": 10},
+              "special_needs": {"type": "string", "example": "infant formula needed"}
+            }
+          },
+          "housing_type": {
+            "type": "string",
+            "enum": ["apartment", "house", "mobile_home", "other"]
+          },
+          "budget_tier": {
+            "type": "integer",
+            "enum": [50, 100, 200]
+          },
+          "financial_situation": {
+            "type": "object",
+            "description": "Required for economic_crisis mode",
+            "properties": {
+              "current_income": {"type": "number", "minimum": 0},
+              "monthly_expenses": {"type": "number", "minimum": 0},
+              "available_savings": {"type": "number", "minimum": 0},
+              "debt_obligations": {"type": "number", "minimum": 0},
+              "dependents": {"type": "integer", "minimum": 0},
+              "employment_status": {
+                "type": "string",
+                "enum": ["furloughed", "laid_off", "reduced_hours", "unemployed"]
+              }
+            }
+          }
+        }
+      },
+      "AgentStatus": {
+        "type": "object",
+        "properties": {
+          "agent_name": {
+            "type": "string",
+            "example": "Risk Assessment Agent"
+          },
+          "agent_type": {
+            "type": "string",
+            "enum": ["coordinator", "risk_assessment", "supply_planning", "financial_advisor", "resource_locator", "video_curator", "documentation"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["waiting", "active", "complete", "error"]
+          },
+          "current_task_description": {
+            "type": "string",
+            "example": "Analyzing weather patterns for your location..."
+          },
+          "progress_percentage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "error_message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CompletePlan": {
+        "type": "object",
+        "properties": {
+          "task_id": {"type": "string", "format": "uuid"},
+          "created_at": {"type": "string", "format": "date-time"},
+          "completed_at": {"type": "string", "format": "date-time"},
+          "total_execution_time_seconds": {"type": "number"},
+          "crisis_profile": {
+            "$ref": "#/components/schemas/CrisisProfileInput"
+          },
+          "risk_assessment": {
+            "type": "object",
+            "nullable": true,
+            "description": "See data-model.md RiskAssessment schema"
+          },
+          "supply_plan": {
+            "type": "object",
+            "nullable": true,
+            "description": "See data-model.md SupplyPlan schema"
+          },
+          "emergency_plan": {
+            "type": "object",
+            "nullable": true,
+            "description": "See data-model.md EmergencyPlan schema"
+          },
+          "economic_plan": {
+            "type": "object",
+            "nullable": true,
+            "description": "See data-model.md EconomicPlan schema"
+          },
+          "resource_locations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "See data-model.md ResourceLocation schema"
+            }
+          },
+          "video_recommendations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "See data-model.md VideoRecommendation schema"
+            }
+          },
+          "pdf_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "/api/crisis/a1b2c3d4-e5f6-7890-abcd-ef1234567890/pdf"
+          },
+          "pdf_generated": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["complete", "partial", "failed"]
+          },
+          "agents_succeeded": {"type": "integer"},
+          "agents_failed": {"type": "integer"},
+          "failure_details": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "total_cost_estimate": {"type": "number"},
+          "tokens_used": {"type": "integer"}
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "ValidationError"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid ZIP code format"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

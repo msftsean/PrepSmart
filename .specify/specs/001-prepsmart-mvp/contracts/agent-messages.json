@@ -1,0 +1,477 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PrepSmart Agent Message Contracts",
+  "description": "JSON schemas for inter-agent communication in PrepSmart multi-agent system",
+  "definitions": {
+    "CoordinatorToSpecialistMessage": {
+      "type": "object",
+      "description": "Message sent from Coordinator Agent to any Specialist Agent",
+      "required": ["task_id", "crisis_profile", "agent_type", "timeout", "priority"],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this crisis plan task"
+        },
+        "crisis_profile": {
+          "type": "object",
+          "description": "User's crisis scenario (see CrisisProfile in data-model.md)",
+          "required": ["crisis_mode", "specific_threat", "location", "household", "housing_type", "budget_tier"],
+          "properties": {
+            "crisis_mode": {
+              "type": "string",
+              "enum": ["natural_disaster", "economic_crisis"]
+            },
+            "specific_threat": {
+              "type": "string",
+              "examples": ["hurricane", "earthquake", "government_shutdown", "layoff"]
+            },
+            "location": {
+              "type": "object",
+              "properties": {
+                "zip_code": {"type": "string"},
+                "city": {"type": "string"},
+                "state": {"type": "string"},
+                "country": {"type": "string"},
+                "latitude": {"type": "number"},
+                "longitude": {"type": "number"}
+              }
+            },
+            "household": {
+              "type": "object",
+              "properties": {
+                "adults": {"type": "integer"},
+                "children": {"type": "integer"},
+                "pets": {"type": "integer"},
+                "special_needs": {"type": "string"}
+              }
+            },
+            "housing_type": {
+              "type": "string",
+              "enum": ["apartment", "house", "mobile_home", "other"]
+            },
+            "budget_tier": {
+              "type": "integer",
+              "enum": [50, 100, 200]
+            },
+            "financial_situation": {
+              "type": "object",
+              "nullable": true,
+              "description": "Present only for economic_crisis mode"
+            }
+          }
+        },
+        "agent_type": {
+          "type": "string",
+          "enum": ["risk_assessment", "supply_planning", "financial_advisor", "resource_locator", "video_curator", "documentation"],
+          "description": "Which specialist agent should handle this task"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Maximum execution time in seconds",
+          "default": 30,
+          "minimum": 10,
+          "maximum": 120
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "Task priority for agent queue management"
+        },
+        "dependencies": {
+          "type": "object",
+          "description": "Data from other agents that this agent depends on",
+          "properties": {
+            "risk_assessment": {
+              "type": "object",
+              "nullable": true,
+              "description": "Output from Risk Assessment Agent (needed by Supply Planning, Emergency Plan)"
+            },
+            "supply_plan": {
+              "type": "object",
+              "nullable": true,
+              "description": "Output from Supply Planning Agent (needed by Documentation Agent)"
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional context",
+          "properties": {
+            "timestamp": {"type": "string", "format": "date-time"},
+            "retry_count": {"type": "integer", "default": 0}
+          }
+        }
+      }
+    },
+    "SpecialistToCoordinatorResponse": {
+      "type": "object",
+      "description": "Response from any Specialist Agent back to Coordinator",
+      "required": ["task_id", "agent_type", "status", "execution_time_seconds"],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "agent_type": {
+          "type": "string",
+          "enum": ["risk_assessment", "supply_planning", "financial_advisor", "resource_locator", "video_curator", "documentation"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["success", "partial", "error"],
+          "description": "success = fully completed, partial = degraded output, error = failed"
+        },
+        "result": {
+          "type": "object",
+          "nullable": true,
+          "description": "Agent-specific output (schema varies by agent_type)"
+        },
+        "error": {
+          "type": "string",
+          "nullable": true,
+          "description": "Error message if status is 'error' or 'partial'"
+        },
+        "execution_time_seconds": {
+          "type": "number",
+          "description": "Actual time taken to process"
+        },
+        "tokens_used": {
+          "type": "integer",
+          "nullable": true,
+          "description": "Claude API tokens consumed (if applicable)"
+        },
+        "cost_estimate": {
+          "type": "number",
+          "nullable": true,
+          "description": "Estimated cost in USD for this agent's processing"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "completed_at": {"type": "string", "format": "date-time"},
+            "warnings": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Non-fatal warnings or degraded functionality notes"
+            }
+          }
+        }
+      }
+    },
+    "RiskAssessmentAgentResult": {
+      "type": "object",
+      "description": "Result format for Risk Assessment Agent",
+      "required": ["location", "primary_threat", "overall_severity_score", "overall_risk_level", "time_sensitive", "evacuation_recommended"],
+      "properties": {
+        "location": {"type": "string"},
+        "primary_threat": {
+          "type": "object",
+          "required": ["threat_type", "severity_score", "risk_level"],
+          "properties": {
+            "threat_type": {"type": "string"},
+            "severity_score": {"type": "integer", "minimum": 0, "maximum": 100},
+            "risk_level": {"type": "string", "enum": ["EXTREME", "HIGH", "MEDIUM", "LOW"]},
+            "distance_to_threat": {"type": "number", "nullable": true},
+            "historical_context": {"type": "string"},
+            "specific_warnings": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "secondary_threats": {
+          "type": "array",
+          "items": {"type": "object"}
+        },
+        "overall_severity_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "overall_risk_level": {"type": "string", "enum": ["EXTREME", "HIGH", "MEDIUM", "LOW"]},
+        "time_sensitive": {"type": "boolean"},
+        "evacuation_recommended": {"type": "boolean"},
+        "recommendations": {"type": "array", "items": {"type": "string"}},
+        "source": {"type": "string"}
+      }
+    },
+    "SupplyPlanningAgentResult": {
+      "type": "object",
+      "description": "Result format for Supply Planning Agent",
+      "required": ["crisis_type", "household_size", "budget_constraint", "tiers", "recommended_tier"],
+      "properties": {
+        "crisis_type": {"type": "string"},
+        "household_size": {"type": "integer"},
+        "budget_constraint": {"type": "integer"},
+        "tiers": {
+          "type": "object",
+          "description": "Keys: 'critical', 'prepared', 'comprehensive'",
+          "properties": {
+            "critical": {"$ref": "#/definitions/SupplyTier"},
+            "prepared": {"$ref": "#/definitions/SupplyTier"},
+            "comprehensive": {"$ref": "#/definitions/SupplyTier"}
+          }
+        },
+        "recommended_tier": {"type": "string", "enum": ["critical", "prepared", "comprehensive"]},
+        "total_items": {"type": "integer"},
+        "storage_tips": {"type": "array", "items": {"type": "string"}},
+        "acquisition_timeline": {"type": "string"}
+      }
+    },
+    "SupplyTier": {
+      "type": "object",
+      "required": ["tier_name", "description", "items", "total_cost", "duration_days"],
+      "properties": {
+        "tier_name": {"type": "string", "enum": ["Critical", "Prepared", "Comprehensive"]},
+        "description": {"type": "string"},
+        "items": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/SupplyItem"}
+        },
+        "total_cost": {"type": "number"},
+        "duration_days": {"type": "integer"}
+      }
+    },
+    "SupplyItem": {
+      "type": "object",
+      "required": ["name", "quantity", "unit", "estimated_price", "priority", "category", "rationale"],
+      "properties": {
+        "name": {"type": "string"},
+        "quantity": {"type": "integer", "minimum": 1},
+        "unit": {"type": "string"},
+        "estimated_price": {"type": "number"},
+        "priority": {"type": "string", "enum": ["critical", "prepared", "comprehensive"]},
+        "category": {"type": "string"},
+        "crisis_specific": {"type": "boolean"},
+        "alternatives": {"type": "array", "items": {"type": "string"}},
+        "rationale": {"type": "string"}
+      }
+    },
+    "FinancialAdvisorAgentResult": {
+      "type": "object",
+      "description": "Result format for Financial Advisor Agent (economic crisis)",
+      "required": ["crisis_type", "financial_summary", "expense_categories", "revised_monthly_expenses", "daily_actions", "eligible_benefits", "survival_outlook"],
+      "properties": {
+        "crisis_type": {"type": "string"},
+        "financial_summary": {
+          "type": "object",
+          "properties": {
+            "current_monthly_income": {"type": "number"},
+            "total_monthly_expenses": {"type": "number"},
+            "available_savings": {"type": "number"},
+            "monthly_deficit": {"type": "number"},
+            "runway_days": {"type": "integer"}
+          }
+        },
+        "expense_categories": {
+          "type": "object",
+          "properties": {
+            "must_pay": {"type": "array", "items": {"type": "object"}},
+            "defer": {"type": "array", "items": {"type": "object"}},
+            "eliminate": {"type": "array", "items": {"type": "object"}}
+          }
+        },
+        "revised_monthly_expenses": {"type": "number"},
+        "daily_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["day", "priority", "action", "estimated_time"],
+            "properties": {
+              "day": {"type": "integer"},
+              "priority": {"type": "string", "enum": ["critical", "high", "medium"]},
+              "action": {"type": "string"},
+              "deadline": {"type": "string", "nullable": true},
+              "resources_needed": {"type": "array", "items": {"type": "string"}},
+              "estimated_time": {"type": "string"}
+            }
+          }
+        },
+        "eligible_benefits": {"type": "array", "items": {"type": "object"}},
+        "estimated_total_relief": {"type": "string"},
+        "hardship_letters": {"type": "array", "items": {"type": "object"}},
+        "local_resources": {"type": "array", "items": {"type": "string"}},
+        "survival_outlook": {
+          "type": "object",
+          "properties": {
+            "without_action": {"type": "string"},
+            "with_action": {"type": "string"},
+            "best_case": {"type": "string"}
+          }
+        }
+      }
+    },
+    "ResourceLocatorAgentResult": {
+      "type": "object",
+      "description": "Result format for Resource Locator Agent",
+      "required": ["location", "resource_types_searched", "resources_found", "search_radius_miles"],
+      "properties": {
+        "location": {"type": "string"},
+        "resource_types_searched": {
+          "type": "array",
+          "items": {"type": "string"},
+          "examples": [["shelter", "food_bank", "hospital"]]
+        },
+        "resources_found": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "description": "See ResourceLocation schema in data-model.md"
+          }
+        },
+        "search_radius_miles": {"type": "number"},
+        "notes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Additional context (e.g., 'Expanded search to 50 miles, few local resources')"
+        }
+      }
+    },
+    "VideoCuratorAgentResult": {
+      "type": "object",
+      "description": "Result format for Video Curator Agent",
+      "required": ["crisis_type", "videos_recommended", "total_duration_seconds"],
+      "properties": {
+        "crisis_type": {"type": "string"},
+        "videos_recommended": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "description": "See VideoRecommendation schema in data-model.md"
+          },
+          "minItems": 5,
+          "maxItems": 7
+        },
+        "total_duration_seconds": {"type": "integer"},
+        "curation_criteria": {
+          "type": "string",
+          "description": "Explanation of how videos were selected"
+        }
+      }
+    },
+    "DocumentationAgentResult": {
+      "type": "object",
+      "description": "Result format for Documentation Agent (PDF generation)",
+      "required": ["pdf_generated", "pdf_size_bytes", "page_count"],
+      "properties": {
+        "pdf_generated": {"type": "boolean"},
+        "pdf_bytes": {
+          "type": "string",
+          "format": "byte",
+          "description": "Base64-encoded PDF content"
+        },
+        "pdf_size_bytes": {"type": "integer"},
+        "page_count": {"type": "integer"},
+        "sections_included": {
+          "type": "array",
+          "items": {"type": "string"},
+          "examples": [["cover", "risk_assessment", "supply_plan", "emergency_plan", "resources"]]
+        },
+        "generation_time_seconds": {"type": "number"}
+      }
+    },
+    "AgentStatusUpdate": {
+      "type": "object",
+      "description": "Real-time status update broadcast by any agent (for UI dashboard)",
+      "required": ["task_id", "agent_type", "status", "progress_percentage"],
+      "properties": {
+        "task_id": {"type": "string", "format": "uuid"},
+        "agent_type": {"type": "string"},
+        "status": {"type": "string", "enum": ["waiting", "active", "complete", "error"]},
+        "current_task_description": {"type": "string"},
+        "progress_percentage": {"type": "integer", "minimum": 0, "maximum": 100},
+        "timestamp": {"type": "string", "format": "date-time"}
+      }
+    }
+  },
+  "examples": {
+    "coordinator_to_risk_assessment": {
+      "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "crisis_profile": {
+        "crisis_mode": "natural_disaster",
+        "specific_threat": "hurricane",
+        "location": {
+          "zip_code": "33139",
+          "city": "Miami Beach",
+          "state": "FL",
+          "country": "US",
+          "latitude": 25.79,
+          "longitude": -80.13
+        },
+        "household": {
+          "adults": 2,
+          "children": 1,
+          "pets": 1
+        },
+        "housing_type": "apartment",
+        "budget_tier": 100
+      },
+      "agent_type": "risk_assessment",
+      "timeout": 30,
+      "priority": "high",
+      "dependencies": {},
+      "metadata": {
+        "timestamp": "2025-10-28T14:32:10Z",
+        "retry_count": 0
+      }
+    },
+    "risk_assessment_response": {
+      "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "agent_type": "risk_assessment",
+      "status": "success",
+      "result": {
+        "location": "Miami Beach, FL",
+        "primary_threat": {
+          "threat_type": "hurricane",
+          "severity_score": 95,
+          "risk_level": "EXTREME",
+          "distance_to_threat": 45,
+          "historical_context": "Category 5 Hurricane Melissa 45 miles offshore...",
+          "specific_warnings": ["Storm surge 10-15 feet", "Sustained winds 160+ mph"]
+        },
+        "secondary_threats": [],
+        "overall_severity_score": 95,
+        "overall_risk_level": "EXTREME",
+        "time_sensitive": true,
+        "evacuation_recommended": true,
+        "recommendations": ["Evacuate IMMEDIATELY", "Finalize supplies within 2 hours"],
+        "source": "AI Risk Assessment + FEMA + NOAA"
+      },
+      "error": null,
+      "execution_time_seconds": 12.5,
+      "tokens_used": 2345,
+      "cost_estimate": 0.0235,
+      "metadata": {
+        "completed_at": "2025-10-28T14:32:22Z",
+        "warnings": []
+      }
+    },
+    "coordinator_to_supply_planning_with_dependencies": {
+      "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "crisis_profile": {
+        "crisis_mode": "natural_disaster",
+        "specific_threat": "hurricane",
+        "location": {"zip_code": "33139", "city": "Miami Beach", "state": "FL"},
+        "household": {"adults": 2, "children": 1, "pets": 1},
+        "housing_type": "apartment",
+        "budget_tier": 100
+      },
+      "agent_type": "supply_planning",
+      "timeout": 30,
+      "priority": "high",
+      "dependencies": {
+        "risk_assessment": {
+          "overall_risk_level": "EXTREME",
+          "time_sensitive": true,
+          "evacuation_recommended": true
+        }
+      },
+      "metadata": {
+        "timestamp": "2025-10-28T14:32:25Z",
+        "retry_count": 0
+      }
+    },
+    "status_update_from_agent": {
+      "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "agent_type": "supply_planning",
+      "status": "active",
+      "current_task_description": "Creating personalized supply list for hurricane with $100 budget...",
+      "progress_percentage": 45,
+      "timestamp": "2025-10-28T14:32:30Z"
+    }
+  }
+}
