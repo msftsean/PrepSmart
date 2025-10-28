@@ -1,0 +1,309 @@
+/**
+ * PrepSmart - Mobile Responsive Styles
+ *
+ * Target viewports: 320px (iPhone SE) to 428px (iPhone Pro Max)
+ * All touch targets: minimum 44px
+ * All fonts: minimum 16px (no zoom on iOS)
+ */
+
+/* ==================== Mobile Base (320px+) ==================== */
+@media (max-width: 768px) {
+  /* Typography adjustments */
+  html {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  h4 {
+    font-size: 1.25rem;
+  }
+
+  /* Container adjustments */
+  .container,
+  .container-narrow {
+    padding: 0 var(--spacing-md);
+  }
+
+  .section {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .section-sm {
+    padding: var(--spacing-lg) 0;
+  }
+
+  /* Card adjustments */
+  .card {
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Button adjustments */
+  .btn {
+    min-height: 44px;
+    width: 100%; /* Full width on mobile */
+    padding: 0.875rem 1.25rem;
+  }
+
+  .btn-lg {
+    min-height: 56px;
+    padding: 1rem 1.5rem;
+  }
+
+  /* Form adjustments */
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 16px; /* Prevent iOS zoom */
+    min-height: 44px;
+  }
+
+  .form-group {
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Grid to stack on mobile */
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+}
+
+/* ==================== iPhone SE (320px) ==================== */
+@media (max-width: 375px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .container,
+  .container-narrow {
+    padding: 0 var(--spacing-sm);
+  }
+
+  .card {
+    padding: var(--spacing-md);
+  }
+
+  .btn {
+    font-size: 0.9375rem;
+  }
+}
+
+/* ==================== Tablet Portrait (768px - 1024px) ==================== */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    padding: 0 var(--spacing-xl);
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* ==================== Desktop (1024px+) ==================== */
+@media (min-width: 1024px) {
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-xl);
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-xl);
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-xl);
+  }
+
+  /* Buttons don't need full width on desktop */
+  .btn {
+    width: auto;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+}
+
+/* ==================== Touch Optimizations ==================== */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase all interactive elements for touch */
+  a,
+  button,
+  .btn,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .btn:hover {
+    transform: none;
+  }
+
+  /* Larger tap targets for links in text */
+  a {
+    padding: 0.25rem 0;
+  }
+}
+
+/* ==================== Landscape Mobile ==================== */
+@media (max-width: 896px) and (orientation: landscape) {
+  .section {
+    padding: var(--spacing-lg) 0;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+}
+
+/* ==================== High DPI / Retina ==================== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Sharper borders */
+  .card,
+  .btn,
+  .form-input,
+  .form-select {
+    border-width: 0.5px;
+  }
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+  body {
+    background-color: white;
+  }
+
+  .btn,
+  .alert,
+  nav,
+  footer {
+    display: none;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid var(--color-gray-300);
+    page-break-inside: avoid;
+  }
+
+  a {
+    text-decoration: underline;
+    color: black;
+  }
+
+  a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8rem;
+    color: var(--color-gray-600);
+  }
+}
+
+/* ==================== Accessibility ==================== */
+
+/* Focus styles for keyboard navigation */
+*:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--color-primary);
+  color: white;
+  padding: var(--spacing-md);
+  z-index: 100;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .btn {
+    border: 2px solid currentColor;
+  }
+
+  .card {
+    border: 2px solid var(--color-gray-400);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .spinner {
+    animation: none;
+    border-top-color: var(--color-gray-400);
+  }
+}
+
+/* Dark mode support (future) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-gray-50: #111827;
+    --color-gray-100: #1F2937;
+    --color-gray-900: #F9FAFB;
+  }
+
+  body {
+    background-color: var(--color-gray-50);
+    color: var(--color-gray-900);
+  }
+
+  .card {
+    background-color: var(--color-gray-100);
+  }
+}

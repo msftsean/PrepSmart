@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PrepSmart - AI-powered crisis preparedness plans in under 5 minutes. Get personalized plans for natural disasters and economic emergencies.">
+  <title>PrepSmart - Crisis Preparedness Assistant</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/mobile.css">
+
+  <style>
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+      color: white;
+      padding: 4rem 0;
+      text-align: center;
+    }
+
+    .hero h1 {
+      color: white;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      opacity: 0.95;
+    }
+
+    .hero-subtitle {
+      font-size: 1.125rem;
+      margin-top: 1rem;
+      opacity: 0.9;
+    }
+
+    /* Crisis Mode Cards */
+    .crisis-modes {
+      margin-top: -3rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mode-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      border: 2px solid transparent;
+      text-decoration: none;
+      display: block;
+      color: inherit;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      border-color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    .mode-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .mode-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--color-gray-900);
+    }
+
+    .mode-description {
+      color: var(--color-gray-600);
+      margin-bottom: 0;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 4rem 0;
+      background: white;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .feature {
+      text-align: center;
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-text {
+      color: var(--color-gray-600);
+      font-size: 0.9375rem;
+    }
+
+    /* Current Crises Banner */
+    .crisis-banner {
+      background: linear-gradient(90deg, #DC2626 0%, #F59E0B 100%);
+      color: white;
+      padding: 1rem 0;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .crisis-banner a {
+      color: white;
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--color-gray-800);
+      color: var(--color-gray-300);
+      padding: 2rem 0;
+      text-align: center;
+      margin-top: 4rem;
+    }
+
+    footer a {
+      color: var(--color-gray-300);
+    }
+
+    footer a:hover {
+      color: white;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .hero p {
+        font-size: 1.125rem;
+      }
+
+      .mode-card {
+        margin-bottom: 1rem;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip to main content (accessibility) -->
+  <a href="#main" class="skip-to-main">Skip to main content</a>
+
+  <!-- Current Crisis Banner -->
+  <div class="crisis-banner">
+    <div class="container">
+      🚨 ACTIVE CRISES: Hurricane Melissa (Jamaica) • US Government Shutdown (900K+ affected)
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>PrepSmart</h1>
+      <p>AI-Powered Crisis Preparedness Plans in Under 5 Minutes</p>
+      <p class="hero-subtitle">
+        Personalized survival plans for natural disasters and economic emergencies
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main id="main">
+    <!-- Crisis Mode Selection -->
+    <section class="crisis-modes">
+      <div class="container">
+        <div class="grid-2">
+          <!-- Natural Disaster Mode -->
+          <a href="pages/crisis-select.html?mode=natural" class="mode-card">
+            <span class="mode-icon">🌪️</span>
+            <h2 class="mode-title">Natural Disaster</h2>
+            <p class="mode-description">
+              Hurricanes, earthquakes, wildfires, floods, tornadoes, and blizzards.
+              Get risk assessments, supply checklists, and evacuation plans.
+            </p>
+          </a>
+
+          <!-- Economic Crisis Mode -->
+          <a href="pages/crisis-select.html?mode=economic" class="mode-card">
+            <span class="mode-icon">💰</span>
+            <h2 class="mode-title">Economic Crisis</h2>
+            <p class="mode-description">
+              Unemployment, furlough, government shutdown, or layoffs.
+              Get 30-day survival budgets, benefits guidance, and hardship letters.
+            </p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+      <div class="container">
+        <h2 class="text-center mb-4">What You Get</h2>
+
+        <div class="feature-grid">
+          <div class="feature">
+            <span class="feature-icon">⚡</span>
+            <h3 class="feature-title">Fast</h3>
+            <p class="feature-text">Complete personalized plan in under 5 minutes</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon">💰</span>
+            <h3 class="feature-title">Budget-Conscious</h3>
+            <p class="feature-text">Three tiers ($50/$100/$200+) with free alternatives</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon">📱</span>
+            <h3 class="feature-title">Mobile-First</h3>
+            <p class="feature-text">Works on any device, offline support included</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon">🤖</span>
+            <h3 class="feature-title">AI-Powered</h3>
+            <p class="feature-text">7 specialized agents working together for you</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon">📄</span>
+            <h3 class="feature-title">Downloadable PDF</h3>
+            <p class="feature-text">Print-ready 2-page plan for offline use</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon">🔒</span>
+            <h3 class="feature-title">Privacy-Focused</h3>
+            <p class="feature-text">No data selling, minimal collection, session-only storage</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section-sm">
+      <div class="container-narrow">
+        <h2 class="text-center mb-4">How It Works</h2>
+
+        <div class="card">
+          <div style="display: flex; gap: 2rem; align-items: start; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+              <div style="font-size: 2rem; font-weight: bold; color: var(--color-primary); margin-bottom: 0.5rem;">1</div>
+              <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">Choose Crisis Type</h3>
+              <p style="margin: 0; color: var(--color-gray-600);">Natural disaster or economic emergency</p>
+            </div>
+
+            <div style="flex: 1; min-width: 200px;">
+              <div style="font-size: 2rem; font-weight: bold; color: var(--color-primary); margin-bottom: 0.5rem;">2</div>
+              <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">Answer Questions</h3>
+              <p style="margin: 0; color: var(--color-gray-600);">Location, household size, budget</p>
+            </div>
+
+            <div style="flex: 1; min-width: 200px;">
+              <div style="font-size: 2rem; font-weight: bold; color: var(--color-primary); margin-bottom: 0.5rem;">3</div>
+              <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">Watch AI Agents</h3>
+              <p style="margin: 0; color: var(--color-gray-600);">See 7 specialists analyze your situation</p>
+            </div>
+
+            <div style="flex: 1; min-width: 200px;">
+              <div style="font-size: 2rem; font-weight: bold; color: var(--color-primary); margin-bottom: 0.5rem;">4</div>
+              <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">Get Your Plan</h3>
+              <p style="margin: 0; color: var(--color-gray-600);">Actionable steps + downloadable PDF</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section-sm" style="background: var(--color-gray-100);">
+      <div class="container text-center">
+        <h2 class="mb-3">Ready to Prepare for the Unexpected?</h2>
+        <p class="text-lg text-gray mb-4">
+          Get your personalized crisis plan in under 5 minutes
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="pages/crisis-select.html?mode=natural" class="btn btn-primary btn-lg">
+            Natural Disaster Plan
+          </a>
+          <a href="pages/crisis-select.html?mode=economic" class="btn btn-outline btn-lg">
+            Economic Crisis Plan
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p style="margin-bottom: 0.5rem;">
+        Built with AI to help people survive crises
+      </p>
+      <p style="font-size: 0.875rem; margin: 0;">
+        All recommendations sourced from FEMA, CDC, Red Cross, and CFPB
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/api-client.js"></script>
+  <script>
+    // Health check on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await api.health();
+        console.log('Backend connected');
+      } catch (error) {
+        console.warn('Backend not available:', error.message);
+        // Could show a banner here if needed
+      }
+    });
+  </script>
+</body>
+</html>

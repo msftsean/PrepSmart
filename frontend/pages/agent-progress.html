@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generating Your Plan - PrepSmart</title>
+
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/mobile.css">
+
+  <style>
+    .page-header {
+      background: var(--color-primary);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .overall-progress {
+      margin: 2rem 0;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9375rem;
+    }
+
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .agent-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      border-left: 4px solid var(--color-gray-300);
+      transition: all var(--transition-fast);
+    }
+
+    .agent-card.pending {
+      border-left-color: var(--color-gray-400);
+      opacity: 0.7;
+    }
+
+    .agent-card.in_progress {
+      border-left-color: var(--color-primary);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .agent-card.completed {
+      border-left-color: var(--color-success);
+    }
+
+    .agent-card.error {
+      border-left-color: var(--color-danger);
+    }
+
+    .agent-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .agent-icon {
+      font-size: 2.5rem;
+    }
+
+    .agent-info {
+      flex: 1;
+    }
+
+    .agent-name {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .agent-status {
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-dot.pending {
+      background-color: var(--color-gray-400);
+    }
+
+    .status-dot.in_progress {
+      background-color: var(--color-primary);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .status-dot.completed {
+      background-color: var(--color-success);
+    }
+
+    .status-dot.error {
+      background-color: var(--color-danger);
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .agent-description {
+      font-size: 0.875rem;
+      color: var(--color-gray-600);
+      margin-bottom: 0.75rem;
+    }
+
+    .agent-log {
+      background: var(--color-gray-50);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      font-size: 0.8125rem;
+      font-family: var(--font-mono);
+      color: var(--color-gray-700);
+      max-height: 100px;
+      overflow-y: auto;
+      margin-top: 0.75rem;
+    }
+
+    .estimated-time {
+      text-align: center;
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background: var(--color-gray-100);
+      border-radius: var(--radius-lg);
+    }
+
+    .time-remaining {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .completion-message {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .completion-message h2 {
+      color: var(--color-success);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="container">
+      <h1>Generating Your Crisis Plan</h1>
+      <p>Our AI agents are analyzing your situation...</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="section">
+    <div class="container">
+      <!-- Overall Progress -->
+      <div class="overall-progress">
+        <div class="card">
+          <div class="progress-info">
+            <span id="progress-label">Starting analysis...</span>
+            <span id="progress-percentage">0%</span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" id="overall-progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estimated Time -->
+      <div class="estimated-time" id="time-estimate">
+        <div class="time-remaining" id="time-remaining">~3 minutes</div>
+        <div class="text-gray">Estimated time remaining</div>
+      </div>
+
+      <!-- Agents Grid -->
+      <div class="agents-grid" id="agents-grid">
+        <!-- Agent cards will be inserted here by JS -->
+      </div>
+
+      <!-- Completion Message (hidden initially) -->
+      <div class="completion-message hidden" id="completion-message">
+        <h2>✅ Your Crisis Plan is Ready!</h2>
+        <p class="text-lg mb-4">All agents have completed their analysis</p>
+        <button class="btn btn-success btn-lg" onclick="viewResults()">
+          View Your Complete Plan →
+        </button>
+      </div>
+
+      <!-- Error Message (hidden initially) -->
+      <div class="hidden" id="error-message">
+        <div class="alert alert-danger">
+          <strong>Error Generating Plan</strong><br>
+          <span id="error-text"></span>
+          <br><br>
+          <button class="btn btn-outline" onclick="window.location.href='../index.html'">
+            Start Over
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/agent-dashboard.js"></script>
+</body>
+</html>

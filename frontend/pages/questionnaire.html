@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Questionnaire - PrepSmart</title>
+
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/mobile.css">
+
+  <style>
+    .page-header {
+      background: var(--color-primary);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-steps {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .step {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+    }
+
+    .step.active {
+      background: white;
+      color: var(--color-primary);
+    }
+
+    .step.completed {
+      background: var(--color-success);
+      color: white;
+    }
+
+    .form-container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .form-step {
+      display: none;
+    }
+
+    .form-step.active {
+      display: block;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: space-between;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .budget-tiers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .budget-tier {
+      border: 2px solid var(--color-gray-300);
+      border-radius: var(--radius-md);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .budget-tier:hover {
+      border-color: var(--color-primary);
+    }
+
+    .budget-tier.selected {
+      border-color: var(--color-primary);
+      background: rgba(30, 64, 175, 0.05);
+    }
+
+    .budget-tier-amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .budget-tier-label {
+      font-size: 0.875rem;
+      color: var(--color-gray-600);
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border: 2px solid var(--color-gray-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .radio-option:hover {
+      border-color: var(--color-primary);
+    }
+
+    .radio-option input[type="radio"] {
+      width: 20px;
+      height: 20px;
+    }
+
+    .radio-option.selected {
+      border-color: var(--color-primary);
+      background: rgba(30, 64, 175, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="container">
+      <h1 id="page-title">Crisis Preparedness Questionnaire</h1>
+      <p id="page-subtitle">Answer a few questions to generate your personalized plan</p>
+
+      <!-- Progress Steps -->
+      <div class="progress-steps">
+        <div class="step active" id="step-1">1</div>
+        <div class="step" id="step-2">2</div>
+        <div class="step" id="step-3">3</div>
+        <div class="step" id="step-4">4</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="section">
+    <div class="container">
+      <a href="crisis-select.html" class="back-link" id="back-link">
+        ← Back to Crisis Selection
+      </a>
+
+      <div class="form-container">
+        <form id="questionnaire-form">
+          <!-- Step 1: Location -->
+          <div class="form-step active" data-step="1">
+            <div class="card">
+              <h2 class="card-title">Step 1: Location</h2>
+
+              <div class="form-group">
+                <label class="form-label" for="zip-code">
+                  ZIP Code <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="zip-code"
+                  class="form-input"
+                  placeholder="e.g., 33139"
+                  pattern="[0-9]{5}"
+                  required
+                  inputmode="numeric"
+                >
+                <small class="form-help">Enter your 5-digit US ZIP code</small>
+                <div class="form-error hidden" id="zip-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="city">
+                  City <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="city"
+                  class="form-input"
+                  placeholder="e.g., Miami Beach"
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="state">
+                  State <span class="text-danger">*</span>
+                </label>
+                <select id="state" class="form-select" required>
+                  <option value="">Select state...</option>
+                  <option value="AL">Alabama</option>
+                  <option value="AK">Alaska</option>
+                  <option value="AZ">Arizona</option>
+                  <option value="AR">Arkansas</option>
+                  <option value="CA">California</option>
+                  <option value="CO">Colorado</option>
+                  <option value="CT">Connecticut</option>
+                  <option value="DE">Delaware</option>
+                  <option value="DC">District of Columbia</option>
+                  <option value="FL">Florida</option>
+                  <option value="GA">Georgia</option>
+                  <option value="HI">Hawaii</option>
+                  <option value="ID">Idaho</option>
+                  <option value="IL">Illinois</option>
+                  <option value="IN">Indiana</option>
+                  <option value="IA">Iowa</option>
+                  <option value="KS">Kansas</option>
+                  <option value="KY">Kentucky</option>
+                  <option value="LA">Louisiana</option>
+                  <option value="ME">Maine</option>
+                  <option value="MD">Maryland</option>
+                  <option value="MA">Massachusetts</option>
+                  <option value="MI">Michigan</option>
+                  <option value="MN">Minnesota</option>
+                  <option value="MS">Mississippi</option>
+                  <option value="MO">Missouri</option>
+                  <option value="MT">Montana</option>
+                  <option value="NE">Nebraska</option>
+                  <option value="NV">Nevada</option>
+                  <option value="NH">New Hampshire</option>
+                  <option value="NJ">New Jersey</option>
+                  <option value="NM">New Mexico</option>
+                  <option value="NY">New York</option>
+                  <option value="NC">North Carolina</option>
+                  <option value="ND">North Dakota</option>
+                  <option value="OH">Ohio</option>
+                  <option value="OK">Oklahoma</option>
+                  <option value="OR">Oregon</option>
+                  <option value="PA">Pennsylvania</option>
+                  <option value="RI">Rhode Island</option>
+                  <option value="SC">South Carolina</option>
+                  <option value="SD">South Dakota</option>
+                  <option value="TN">Tennessee</option>
+                  <option value="TX">Texas</option>
+                  <option value="UT">Utah</option>
+                  <option value="VT">Vermont</option>
+                  <option value="VA">Virginia</option>
+                  <option value="WA">Washington</option>
+                  <option value="WV">West Virginia</option>
+                  <option value="WI">Wisconsin</option>
+                  <option value="WY">Wyoming</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <div></div>
+              <button type="button" class="btn btn-primary" onclick="nextStep()">
+                Next Step →
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Household -->
+          <div class="form-step" data-step="2">
+            <div class="card">
+              <h2 class="card-title">Step 2: Household Information</h2>
+
+              <div class="form-group">
+                <label class="form-label" for="adults">
+                  Number of Adults (18+) <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="adults"
+                  class="form-input"
+                  min="1"
+                  max="20"
+                  value="1"
+                  required
+                  inputmode="numeric"
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="children">
+                  Number of Children (Under 18) <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="children"
+                  class="form-input"
+                  min="0"
+                  max="20"
+                  value="0"
+                  required
+                  inputmode="numeric"
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="pets">
+                  Number of Pets <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="pets"
+                  class="form-input"
+                  min="0"
+                  max="20"
+                  value="0"
+                  required
+                  inputmode="numeric"
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  Housing Type <span class="text-danger">*</span>
+                </label>
+                <div class="radio-group">
+                  <label class="radio-option">
+                    <input type="radio" name="housing-type" value="house" required>
+                    <span>House (Single-family home)</span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="housing-type" value="apartment" required>
+                    <span>Apartment/Condo</span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="housing-type" value="mobile_home" required>
+                    <span>Mobile Home/Trailer</span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="housing-type" value="other" required>
+                    <span>Other</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline" onclick="prevStep()">
+                ← Previous
+              </button>
+              <button type="button" class="btn btn-primary" onclick="nextStep()">
+                Next Step →
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Budget (Natural Disaster) / Financial (Economic) -->
+          <div class="form-step" data-step="3">
+            <div class="card" id="budget-card">
+              <h2 class="card-title">Step 3: Budget</h2>
+              <p class="text-gray mb-3">How much can you spend on emergency supplies?</p>
+
+              <div class="budget-tiers">
+                <div class="budget-tier" data-tier="50">
+                  <div class="budget-tier-amount">$50</div>
+                  <div class="budget-tier-label">Critical Tier</div>
+                </div>
+                <div class="budget-tier" data-tier="100">
+                  <div class="budget-tier-amount">$100</div>
+                  <div class="budget-tier-label">Prepared Tier</div>
+                </div>
+                <div class="budget-tier" data-tier="200">
+                  <div class="budget-tier-amount">$200+</div>
+                  <div class="budget-tier-label">Comprehensive Tier</div>
+                </div>
+              </div>
+              <input type="hidden" id="budget-tier" required>
+            </div>
+
+            <div class="card hidden" id="financial-card">
+              <h2 class="card-title">Step 3: Financial Situation</h2>
+
+              <div class="form-group">
+                <label class="form-label" for="current-income">
+                  Current Monthly Income <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="current-income"
+                  class="form-input"
+                  min="0"
+                  step="0.01"
+                  placeholder="0"
+                  inputmode="decimal"
+                >
+                <small class="form-help">Enter $0 if currently unemployed</small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="monthly-expenses">
+                  Monthly Expenses <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="monthly-expenses"
+                  class="form-input"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 3200"
+                  inputmode="decimal"
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="available-savings">
+                  Available Savings <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="available-savings"
+                  class="form-input"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 2000"
+                  inputmode="decimal"
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="debt-obligations">
+                  Total Debt Obligations (Optional)
+                </label>
+                <input
+                  type="number"
+                  id="debt-obligations"
+                  class="form-input"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 500"
+                  inputmode="decimal"
+                >
+                <small class="form-help">Monthly debt payments (credit cards, loans, etc.)</small>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline" onclick="prevStep()">
+                ← Previous
+              </button>
+              <button type="button" class="btn btn-primary" onclick="nextStep()">
+                Next Step →
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Review & Submit -->
+          <div class="form-step" data-step="4">
+            <div class="card">
+              <h2 class="card-title">Step 4: Review & Generate Plan</h2>
+              <p class="text-gray mb-4">Review your information before generating your crisis plan</p>
+
+              <div id="review-summary"></div>
+
+              <div class="alert alert-info mt-4">
+                <strong>What happens next?</strong><br>
+                You'll watch our AI agents analyze your situation in real-time. The complete plan typically takes 2-3 minutes to generate.
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline" onclick="prevStep()">
+                ← Previous
+              </button>
+              <button type="submit" class="btn btn-success btn-lg">
+                Generate My Plan
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/form-handler.js"></script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Crisis Type - PrepSmart</title>
+
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/mobile.css">
+
+  <style>
+    .page-header {
+      background: var(--color-primary);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      opacity: 0.95;
+      margin: 0;
+    }
+
+    .disaster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .disaster-card {
+      background: white;
+      border: 2px solid var(--color-gray-200);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-decoration: none;
+      display: block;
+    }
+
+    .disaster-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+
+    .disaster-card.selected {
+      border-color: var(--color-primary);
+      background: rgba(30, 64, 175, 0.05);
+    }
+
+    .disaster-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .disaster-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-gray-900);
+      margin-bottom: 0.5rem;
+    }
+
+    .disaster-description {
+      font-size: 0.9375rem;
+      color: var(--color-gray-600);
+      margin: 0;
+    }
+
+    .economic-form {
+      max-width: 600px;
+      margin: 2rem auto;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="container">
+      <h1 id="page-title">Select Crisis Type</h1>
+      <p id="page-subtitle">Choose the crisis you're preparing for</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="section">
+    <div class="container">
+      <a href="../index.html" class="back-link">
+        ← Back to Home
+      </a>
+
+      <!-- Natural Disaster Selection -->
+      <div id="natural-disasters" class="hidden">
+        <h2 class="text-center mb-4">Select Natural Disaster Type</h2>
+
+        <div class="disaster-grid">
+          <div class="disaster-card" data-disaster="hurricane">
+            <span class="disaster-icon">🌀</span>
+            <h3 class="disaster-name">Hurricane</h3>
+            <p class="disaster-description">Tropical cyclones with high winds, storm surge, and flooding</p>
+          </div>
+
+          <div class="disaster-card" data-disaster="earthquake">
+            <span class="disaster-icon">🏚️</span>
+            <h3 class="disaster-name">Earthquake</h3>
+            <p class="disaster-description">Ground shaking from tectonic plate movements</p>
+          </div>
+
+          <div class="disaster-card" data-disaster="wildfire">
+            <span class="disaster-icon">🔥</span>
+            <h3 class="disaster-name">Wildfire</h3>
+            <p class="disaster-description">Uncontrolled fires in wildland areas</p>
+          </div>
+
+          <div class="disaster-card" data-disaster="flood">
+            <span class="disaster-icon">🌊</span>
+            <h3 class="disaster-name">Flood</h3>
+            <p class="disaster-description">Overflow of water onto normally dry land</p>
+          </div>
+
+          <div class="disaster-card" data-disaster="tornado">
+            <span class="disaster-icon">🌪️</span>
+            <h3 class="disaster-name">Tornado</h3>
+            <p class="disaster-description">Violently rotating column of air</p>
+          </div>
+
+          <div class="disaster-card" data-disaster="blizzard">
+            <span class="disaster-icon">❄️</span>
+            <h3 class="disaster-name">Blizzard</h3>
+            <p class="disaster-description">Severe snowstorm with high winds</p>
+          </div>
+        </div>
+
+        <div class="text-center mt-5">
+          <button id="continue-btn" class="btn btn-primary btn-lg" disabled>
+            Continue to Questionnaire →
+          </button>
+        </div>
+      </div>
+
+      <!-- Economic Crisis Selection -->
+      <div id="economic-crisis" class="hidden">
+        <h2 class="text-center mb-4">Economic Crisis Details</h2>
+
+        <div class="economic-form">
+          <div class="card">
+            <div class="form-group">
+              <label class="form-label" for="crisis-type">
+                Crisis Type <span class="text-danger">*</span>
+              </label>
+              <select id="crisis-type" class="form-select" required>
+                <option value="">Select crisis type...</option>
+                <option value="unemployment">Unemployment</option>
+                <option value="furlough">Furlough (temporary unpaid leave)</option>
+                <option value="government_shutdown">Government Shutdown</option>
+                <option value="layoff">Layoff</option>
+                <option value="reduced_hours">Reduced Hours</option>
+                <option value="other">Other Economic Hardship</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="crisis-description">
+                Brief Description (Optional)
+              </label>
+              <textarea
+                id="crisis-description"
+                class="form-textarea"
+                placeholder="e.g., Federal employee affected by government shutdown, no paycheck expected for 3+ weeks"
+                rows="3"
+              ></textarea>
+              <small class="form-help">
+                Help us understand your specific situation
+              </small>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <button id="continue-economic-btn" class="btn btn-primary btn-lg" disabled>
+              Continue to Questionnaire →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="../assets/js/api-client.js"></script>
+  <script>
+    // Get mode from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode');
+
+    // Update page based on mode
+    if (mode === 'natural') {
+      document.getElementById('natural-disasters').classList.remove('hidden');
+      document.getElementById('page-title').textContent = 'Natural Disaster Preparedness';
+      document.getElementById('page-subtitle').textContent = 'Select the disaster type affecting your area';
+    } else if (mode === 'economic') {
+      document.getElementById('economic-crisis').classList.remove('hidden');
+      document.getElementById('page-title').textContent = 'Economic Crisis Survival';
+      document.getElementById('page-subtitle').textContent = 'Tell us about your economic situation';
+    } else {
+      // Invalid mode, redirect to home
+      window.location.href = '../index.html';
+    }
+
+    // Handle natural disaster selection
+    let selectedDisaster = null;
+
+    document.querySelectorAll('.disaster-card').forEach(card => {
+      card.addEventListener('click', () => {
+        // Remove previous selection
+        document.querySelectorAll('.disaster-card').forEach(c => c.classList.remove('selected'));
+
+        // Select this card
+        card.classList.add('selected');
+        selectedDisaster = card.dataset.disaster;
+
+        // Enable continue button
+        document.getElementById('continue-btn').disabled = false;
+
+        // Store selection
+        sessionStorage.setItem('crisis_mode', 'natural_disaster');
+        sessionStorage.setItem('disaster_type', selectedDisaster);
+      });
+    });
+
+    // Handle continue button for natural disasters
+    document.getElementById('continue-btn')?.addEventListener('click', () => {
+      if (selectedDisaster) {
+        window.location.href = 'questionnaire.html?mode=natural';
+      }
+    });
+
+    // Handle economic crisis form
+    const crisisTypeSelect = document.getElementById('crisis-type');
+    const continueEconomicBtn = document.getElementById('continue-economic-btn');
+
+    crisisTypeSelect?.addEventListener('change', () => {
+      if (crisisTypeSelect.value) {
+        continueEconomicBtn.disabled = false;
+
+        // Store selection
+        sessionStorage.setItem('crisis_mode', 'economic_crisis');
+        sessionStorage.setItem('crisis_type', crisisTypeSelect.value);
+        sessionStorage.setItem('crisis_description', document.getElementById('crisis-description').value);
+      } else {
+        continueEconomicBtn.disabled = true;
+      }
+    });
+
+    // Handle continue button for economic crisis
+    continueEconomicBtn?.addEventListener('click', () => {
+      if (crisisTypeSelect.value) {
+        sessionStorage.setItem('crisis_type', crisisTypeSelect.value);
+        sessionStorage.setItem('crisis_description', document.getElementById('crisis-description').value);
+        window.location.href = 'questionnaire.html?mode=economic';
+      }
+    });
+  </script>
+</body>
+</html>

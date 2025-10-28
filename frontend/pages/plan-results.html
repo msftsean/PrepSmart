@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Crisis Plan - PrepSmart</title>
+
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/mobile.css">
+
+  <style>
+    .page-header {
+      background: var(--color-success);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .plan-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+
+    .section-card {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 1rem;
+      background: var(--color-gray-100);
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      user-select: none;
+    }
+
+    .section-header:hover {
+      background: var(--color-gray-200);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-icon {
+      font-size: 1.5rem;
+    }
+
+    .toggle-icon {
+      font-size: 1.5rem;
+      transition: transform var(--transition-fast);
+    }
+
+    .section-header.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      padding: 0 1rem;
+    }
+
+    .section-content.collapsed {
+      display: none;
+    }
+
+    .risk-level {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+
+    .risk-EXTREME {
+      background-color: #7F1D1D;
+      color: white;
+    }
+
+    .risk-HIGH {
+      background-color: var(--color-danger);
+      color: white;
+    }
+
+    .risk-MEDIUM {
+      background-color: var(--color-warning);
+      color: white;
+    }
+
+    .risk-LOW {
+      background-color: var(--color-success);
+      color: white;
+    }
+
+    .supply-list {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .supply-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--color-gray-50);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--color-primary);
+    }
+
+    .supply-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+    }
+
+    .supply-details {
+      flex: 1;
+    }
+
+    .supply-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .supply-quantity {
+      font-size: 0.875rem;
+      color: var(--color-gray-600);
+    }
+
+    .resource-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .resource-item {
+      padding: 1rem;
+      background: var(--color-gray-50);
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--color-primary);
+    }
+
+    .resource-name {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .resource-address {
+      font-size: 0.875rem;
+      color: var(--color-gray-600);
+      margin-bottom: 0.5rem;
+    }
+
+    .resource-distance {
+      font-size: 0.875rem;
+      color: var(--color-primary);
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .video-card {
+      border: 1px solid var(--color-gray-200);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow var(--transition-fast);
+    }
+
+    .video-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .video-thumbnail {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--color-gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+
+    .video-info {
+      padding: 1rem;
+    }
+
+    .video-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9375rem;
+    }
+
+    .video-channel {
+      font-size: 0.8125rem;
+      color: var(--color-gray-600);
+      margin-bottom: 0.5rem;
+    }
+
+    .video-link {
+      font-size: 0.875rem;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--color-gray-200);
+    }
+
+    .metric:last-child {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      font-weight: 600;
+      color: var(--color-gray-700);
+    }
+
+    .metric-value {
+      color: var(--color-gray-900);
+      font-weight: 700;
+    }
+
+    .action-item {
+      padding: 1rem;
+      background: var(--color-gray-50);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.75rem;
+      border-left: 3px solid var(--color-primary);
+    }
+
+    .action-day {
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .action-text {
+      color: var(--color-gray-700);
+    }
+  </style>
+</head>
+<body>
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="container">
+      <h1 id="plan-title">Your Crisis Preparedness Plan</h1>
+      <p id="plan-subtitle">Complete personalized recommendations</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="section">
+    <div class="container-narrow">
+      <!-- Action Buttons -->
+      <div class="plan-actions">
+        <button class="btn btn-success btn-lg" onclick="downloadPDF()" id="download-btn">
+          📄 Download PDF
+        </button>
+        <button class="btn btn-outline btn-lg" onclick="window.print()">
+          🖨️ Print Plan
+        </button>
+        <button class="btn btn-outline" onclick="window.location.href='../index.html'">
+          🔄 Create New Plan
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="text-center">
+        <div class="spinner spinner-lg"></div>
+        <p class="mt-3">Loading your complete plan...</p>
+      </div>
+
+      <!-- Plan Content (hidden until loaded) -->
+      <div id="plan-content" class="hidden">
+        <!-- Risk Assessment Section -->
+        <div class="section-card" id="risk-section">
+          <div class="card">
+            <div class="section-header" onclick="toggleSection('risk')">
+              <h2 class="section-title">
+                <span class="section-icon">🎯</span>
+                Risk Assessment
+              </h2>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content" id="risk-content">
+              <!-- Content will be inserted by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Supply Plan Section (Natural Disaster) -->
+        <div class="section-card hidden" id="supply-section">
+          <div class="card">
+            <div class="section-header" onclick="toggleSection('supply')">
+              <h2 class="section-title">
+                <span class="section-icon">📦</span>
+                Supply Checklist
+              </h2>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content" id="supply-content">
+              <!-- Content will be inserted by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Economic Plan Section (Economic Crisis) -->
+        <div class="section-card hidden" id="economic-section">
+          <div class="card">
+            <div class="section-header" onclick="toggleSection('economic')">
+              <h2 class="section-title">
+                <span class="section-icon">💰</span>
+                Financial Survival Plan
+              </h2>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content" id="economic-content">
+              <!-- Content will be inserted by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Resources Section -->
+        <div class="section-card" id="resources-section">
+          <div class="card">
+            <div class="section-header" onclick="toggleSection('resources')">
+              <h2 class="section-title">
+                <span class="section-icon">📍</span>
+                Nearby Resources
+              </h2>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content" id="resources-content">
+              <!-- Content will be inserted by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Videos Section -->
+        <div class="section-card" id="videos-section">
+          <div class="card">
+            <div class="section-header" onclick="toggleSection('videos')">
+              <h2 class="section-title">
+                <span class="section-icon">🎥</span>
+                Recommended Videos
+              </h2>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content" id="videos-content">
+              <!-- Content will be inserted by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="hidden">
+        <div class="alert alert-danger">
+          <strong>Error Loading Plan</strong><br>
+          <span id="error-text"></span>
+          <br><br>
+          <button class="btn btn-primary" onclick="window.location.href='../index.html'">
+            Start Over
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="../assets/js/api-client.js"></script>
+  <script>
+    let planData = null;
+    let taskId = null;
+
+    // Load plan on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      taskId = sessionStorage.getItem('task_id');
+
+      if (!taskId) {
+        showError('No task ID found. Please start over.');
+        return;
+      }
+
+      await loadPlan();
+    });
+
+    /**
+     * Load complete plan from API
+     */
+    async function loadPlan() {
+      try {
+        const result = await api.getCrisisResult(taskId);
+
+        console.log('Plan result:', result);
+
+        // Check if still processing
+        if (result.status === 'in_progress') {
+          // Redirect back to progress page
+          window.location.href = 'agent-progress.html';
+          return;
+        }
+
+        planData = result;
+
+        // Render plan
+        renderPlan(planData);
+
+        // Hide loading, show content
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('plan-content').classList.remove('hidden');
+
+      } catch (error) {
+        console.error('Error loading plan:', error);
+        showError(error.message);
+      }
+    }
+
+    /**
+     * Render complete plan
+     */
+    function renderPlan(data) {
+      // Render risk assessment
+      if (data.risk_assessment) {
+        renderRiskAssessment(data.risk_assessment);
+        document.getElementById('risk-section').classList.remove('hidden');
+      }
+
+      // Render supply plan (natural disaster)
+      if (data.supply_plan) {
+        renderSupplyPlan(data.supply_plan);
+        document.getElementById('supply-section').classList.remove('hidden');
+      }
+
+      // Render economic plan
+      if (data.economic_plan) {
+        renderEconomicPlan(data.economic_plan);
+        document.getElementById('economic-section').classList.remove('hidden');
+      }
+
+      // Render resources
+      if (data.resource_locations) {
+        renderResources(data.resource_locations);
+      }
+
+      // Render videos
+      if (data.video_recommendations) {
+        renderVideos(data.video_recommendations);
+      }
+    }
+
+    /**
+     * Render risk assessment section
+     */
+    function renderRiskAssessment(risk) {
+      const content = document.getElementById('risk-content');
+
+      let html = `
+        <div class="mb-4">
+          <p class="mb-2"><strong>Overall Risk Level:</strong></p>
+          <span class="risk-level risk-${risk.overall_risk_level}">${risk.overall_risk_level}</span>
+        </div>
+      `;
+
+      if (risk.summary) {
+        html += `<p class="mb-3">${risk.summary}</p>`;
+      }
+
+      if (risk.threat_details && risk.threat_details.length > 0) {
+        html += `<h3 class="mt-4 mb-3">Specific Threats</h3>`;
+        risk.threat_details.forEach(threat => {
+          html += `
+            <div class="mb-3">
+              <h4>${threat.threat_type}</h4>
+              <p><strong>Severity:</strong> <span class="badge badge-${getSeverityColor(threat.severity)}">${threat.severity}</span></p>
+              <p>${threat.description}</p>
+            </div>
+          `;
+        });
+      }
+
+      content.innerHTML = html;
+    }
+
+    /**
+     * Render supply plan section
+     */
+    function renderSupplyPlan(supply) {
+      const content = document.getElementById('supply-content');
+
+      let html = '';
+
+      if (supply.budget_tier) {
+        html += `<p class="mb-3"><strong>Budget Tier:</strong> $${supply.budget_tier}</p>`;
+      }
+
+      if (supply.items && supply.items.length > 0) {
+        html += `<h3 class="mb-3">Supply Checklist</h3>`;
+        html += `<div class="supply-list">`;
+
+        supply.items.forEach((item, index) => {
+          html += `
+            <div class="supply-item">
+              <input type="checkbox" id="item-${index}">
+              <label for="item-${index}" class="supply-details">
+                <div class="supply-name">${item.item_name}</div>
+                <div class="supply-quantity">Quantity: ${item.quantity} ${item.unit || ''}</div>
+                ${item.estimated_cost ? `<div class="supply-quantity">~$${item.estimated_cost.toFixed(2)}</div>` : ''}
+              </label>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      content.innerHTML = html;
+    }
+
+    /**
+     * Render economic plan section
+     */
+    function renderEconomicPlan(economic) {
+      const content = document.getElementById('economic-content');
+
+      let html = '';
+
+      // Financial summary
+      if (economic.financial_summary) {
+        html += `<h3 class="mb-3">Financial Summary</h3>`;
+        html += `<div class="mb-4">`;
+        const summary = economic.financial_summary;
+
+        if (summary.runway_days !== undefined) {
+          html += `<div class="metric">
+            <span class="metric-label">Runway (Days):</span>
+            <span class="metric-value">${summary.runway_days} days</span>
+          </div>`;
+        }
+        if (summary.total_expenses !== undefined) {
+          html += `<div class="metric">
+            <span class="metric-label">Monthly Expenses:</span>
+            <span class="metric-value">$${summary.total_expenses.toFixed(2)}</span>
+          </div>`;
+        }
+        if (summary.revised_expenses !== undefined) {
+          html += `<div class="metric">
+            <span class="metric-label">Reduced Expenses:</span>
+            <span class="metric-value">$${summary.revised_expenses.toFixed(2)}</span>
+          </div>`;
+        }
+
+        html += `</div>`;
+      }
+
+      // Action plan
+      if (economic.action_plan && economic.action_plan.length > 0) {
+        html += `<h3 class="mb-3 mt-4">30-Day Action Plan</h3>`;
+        economic.action_plan.slice(0, 10).forEach(action => {
+          html += `
+            <div class="action-item">
+              <div class="action-day">Day ${action.day}</div>
+              <div class="action-text">${action.action}</div>
+            </div>
+          `;
+        });
+      }
+
+      content.innerHTML = html;
+    }
+
+    /**
+     * Render resources section
+     */
+    function renderResources(resources) {
+      const content = document.getElementById('resources-content');
+
+      if (!resources || resources.length === 0) {
+        content.innerHTML = '<p class="text-gray">No nearby resources found.</p>';
+        return;
+      }
+
+      let html = '<div class="resource-list">';
+
+      resources.slice(0, 10).forEach(resource => {
+        html += `
+          <div class="resource-item">
+            <div class="resource-name">${resource.name}</div>
+            <div class="resource-address">${resource.address}</div>
+            ${resource.distance_miles ? `<div class="resource-distance">📍 ${resource.distance_miles.toFixed(1)} miles away</div>` : ''}
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    /**
+     * Render videos section
+     */
+    function renderVideos(videos) {
+      const content = document.getElementById('videos-content');
+
+      if (!videos || videos.length === 0) {
+        content.innerHTML = '<p class="text-gray">No video recommendations available.</p>';
+        return;
+      }
+
+      let html = '<div class="video-grid">';
+
+      videos.forEach(video => {
+        html += `
+          <div class="video-card">
+            <div class="video-thumbnail">🎥</div>
+            <div class="video-info">
+              <div class="video-title">${video.title}</div>
+              <div class="video-channel">${video.channel}</div>
+              <a href="${video.url}" target="_blank" class="video-link btn btn-primary btn-sm">Watch Video →</a>
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    /**
+     * Toggle section collapse
+     */
+    function toggleSection(sectionId) {
+      const header = document.querySelector(`#${sectionId}-content`).previousElementSibling;
+      const content = document.getElementById(`${sectionId}-content`);
+
+      header.classList.toggle('collapsed');
+      content.classList.toggle('collapsed');
+    }
+
+    /**
+     * Download PDF
+     */
+    async function downloadPDF() {
+      const btn = document.getElementById('download-btn');
+      const originalText = btn.textContent;
+
+      try {
+        btn.disabled = true;
+        btn.textContent = '⏳ Downloading...';
+
+        await api.triggerPDFDownload(taskId, 'crisis-plan.pdf');
+
+        btn.textContent = '✓ Downloaded!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }, 2000);
+
+      } catch (error) {
+        console.error('PDF download error:', error);
+        alert('Error downloading PDF: ' + error.message);
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    /**
+     * Show error state
+     */
+    function showError(message) {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('plan-content').classList.add('hidden');
+      document.getElementById('error-state').classList.remove('hidden');
+      document.getElementById('error-text').textContent = message;
+    }
+
+    /**
+     * Get badge color for severity
+     */
+    function getSeverityColor(severity) {
+      const map = {
+        'EXTREME': 'danger',
+        'HIGH': 'danger',
+        'MEDIUM': 'warning',
+        'LOW': 'success'
+      };
+      return map[severity] || 'gray';
+    }
+
+    // Make functions available globally
+    window.toggleSection = toggleSection;
+    window.downloadPDF = downloadPDF;
+  </script>
+</body>
+</html>
