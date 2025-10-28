@@ -1,0 +1,31 @@
+{
+  "name": "prepsmart-e2e-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive Playwright E2E tests for PrepSmart multi-agent system",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:natural": "playwright test specs/01-natural-disaster-flow.spec.ts",
+    "test:economic": "playwright test specs/02-economic-crisis-flow.spec.ts",
+    "test:mobile": "playwright test --project='Mobile Chrome (iPhone SE - 320px)'",
+    "test:tablet": "playwright test --project='Tablet (iPad Pro)'",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen http://localhost:3000"
+  },
+  "keywords": [
+    "e2e",
+    "playwright",
+    "testing",
+    "crisis-preparedness",
+    "multi-agent"
+  ],
+  "author": "PrepSmart Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
