@@ -138,7 +138,7 @@ class BaseAgent(ABC):
             progress: Progress percentage (0-100)
         """
         logger.info(
-            f"[{self.agent_name}] Task {task_id}: {status} - {description} ({progress}%)"
+            f"[{self.agent_class_name}] Task {task_id}: {status} - {description} ({progress}%)"
         )
 
         # TODO: Store in database for real-time UI updates
