@@ -29,21 +29,21 @@ A person facing an imminent natural disaster (hurricane, earthquake, wildfire, e
 
 ### User Story 2 - Economic Crisis Survival Plan (Priority: P2)
 
-A federal worker affected by the government shutdown (or someone facing unemployment/layoff) visits PrepSmart, selects "Economic Crisis", enters their financial situation, and receives a 30-day survival budget, benefits eligibility assessment, hardship letter templates, and local assistance resources.
+A federal worker affected by the government shutdown (or someone facing unemployment/layoff) visits PrepSmart, selects "Economic Crisis", enters their financial situation, and receives a 30-90 day survival budget focused on immediate survival needs.
 
 **Why this priority**: The US Government shutdown is affecting 900k+ workers RIGHT NOW. This demonstrates PrepSmart's unique value beyond typical disaster prep apps. Many people face economic crises but don't know where to start.
 
-**Independent Test**: Can be fully tested by selecting "Government Shutdown" as crisis type, entering financial details (income: $0, expenses: $3000/month, savings: $2000, dependents: 2), and receiving a complete 30-day action plan with budget breakdown, benefits guide, and assistance resources.
+**Independent Test**: Can be fully tested by selecting "Government Shutdown" as crisis type, entering basic financial details (budget tier), and receiving a complete 30-90 day survival plan with budget breakdown and assistance resources.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user selects "Economic Crisis" mode, **When** they choose "Government Shutdown" as crisis type, **Then** system displays Financial Advisor Agent activation and begins guided questionnaire
-2. **Given** user enters financial situation (current income, monthly expenses, available savings, debt obligations), **When** they submit details, **Then** system categorizes expenses into Must-Pay/Defer/Eliminate buckets
-3. **Given** Financial Advisor has analyzed situation, **When** user views 30-day plan, **Then** system displays day-by-day action items (Day 1: Contact landlord, Day 2: File unemployment, Day 3: Apply for SNAP, etc.)
-4. **Given** user needs to communicate with creditors, **When** they access hardship letter templates, **Then** system provides pre-filled templates for landlord, credit cards, utilities, student loans with user's specific situation
-5. **Given** user wants to know benefits eligibility, **When** they view benefits section, **Then** system shows personalized assessment for unemployment insurance, SNAP, Medicaid, utility assistance with estimated amounts and application links
-6. **Given** user needs local help, **When** Resource Locator Agent completes, **Then** system displays map and list of nearby food banks, free legal aid, unemployment offices, and community assistance programs
-7. **Given** complete economic plan is ready, **When** user downloads PDF, **Then** document includes budget spreadsheet, action timeline, letter templates, benefits checklist, and resource contacts
+1. **Given** a user selects "Economic Crisis" mode, **When** they choose "Government Shutdown" as crisis type, **Then** system asks user: "What financial risks should we assess?" (e.g., "How long can you survive without income?")
+2. **Given** user provides risk context, **When** Risk Assessment Agent analyzes, **Then** system evaluates financial risk level (EXTREME/HIGH/MEDIUM/LOW) based on user's specific situation
+3. **Given** user continues questionnaire, **When** system asks about supply priorities, **Then** system asks user: "What should we focus on?" (e.g., "Food stockpiling?" "Medication?" "Essential bills?")
+4. **Given** user specifies priorities and budget tier, **When** agents process, **Then** system creates 30-90 day survival plan focused on immediate budget constraints
+5. **Given** survival plan is complete, **When** user views results, **Then** system displays expense prioritization, food/essentials stockpiling strategy, and immediate cost reduction tactics
+6. **Given** user needs local help, **When** Resource Locator Agent completes, **Then** system displays food banks, unemployment offices, free clinics, job centers, and public libraries
+7. **Given** complete economic plan is ready, **When** user downloads PDF, **Then** document includes simplified 2-page survival guide with essential actions and local resources
 
 ---
 
@@ -107,6 +107,26 @@ A family with limited funds needs to prepare for a disaster but can't afford the
 
 ---
 
+### User Story 6 - Strategic Crisis Planning (Secondary Feature) (Priority: P3)
+
+A user who has completed their immediate 30-90 day survival plan for an economic crisis wants expanded long-term guidance including unemployment filing, job search resources, bill payment strategies, and food assistance programs.
+
+**Why this priority**: This secondary feature provides comprehensive support beyond immediate survival for users who need deeper strategic planning. It's an optional enhancement that doesn't gate the core survival functionality.
+
+**Independent Test**: Can be fully tested by completing an economic crisis plan, then toggling "Strategic Crisis Planning" option, and receiving expanded guidance with unemployment filing steps, resume resources, bill negotiation strategies, and food assistance program finder.
+
+**Acceptance Scenarios**:
+
+1. **Given** user has completed basic economic crisis survival plan, **When** they view results page, **Then** system displays toggle option: "Need more help? Enable Strategic Crisis Planning"
+2. **Given** user enables Strategic Crisis Planning, **When** system processes request, **Then** Financial Advisor Agent generates expanded long-term guidance
+3. **Given** Strategic Planning is active, **When** user views unemployment section, **Then** system provides step-by-step filing guidance with state-specific links and estimated benefit amounts
+4. **Given** user needs job search help, **When** they access job resources section, **Then** system provides resume templates, job board links, and interview preparation guides
+5. **Given** user needs to negotiate bills, **When** they access bill payment section, **Then** system shows prioritization framework (Must-Pay/Defer/Eliminate) with negotiation scripts and hardship letter templates
+6. **Given** user needs food assistance, **When** they access food programs section, **Then** system provides SNAP eligibility calculator, application links, and local food bank directory
+7. **Given** expanded strategic plan is ready, **When** user downloads PDF, **Then** document includes additional pages with strategic guidance, maintaining 2-page core + N-page strategic appendix
+
+---
+
 ### Edge Cases
 
 - **What happens when user enters invalid ZIP code?** System displays error: "Unable to find location data for ZIP code. Please verify and try again, or enter city/state manually."
@@ -127,18 +147,23 @@ A family with limited funds needs to prepare for a disaster but can't afford the
 - **FR-001**: System MUST support two crisis modes: Natural Disaster (hurricane, earthquake, wildfire, flood, tornado, blizzard) and Economic Crisis (government shutdown, unemployment, layoff, furlough)
 - **FR-002**: System MUST collect user location via ZIP code or city/state and validate against geographic database
 - **FR-003**: System MUST collect household composition (number of adults, children, pets), housing type (apartment, house, mobile home), and budget constraint ($50, $100, $200+)
-- **FR-004**: System MUST implement 7 specialized AI agents using Microsoft Agent Framework: Coordinator, Risk Assessment, Supply Planning, Financial Advisor, Resource Locator, Video Curator, Documentation
-- **FR-005**: System MUST display real-time agent activity with status indicators (Waiting/Active/Complete) and plain-language descriptions of each agent's current task
+- **FR-004**: System MUST implement 7 specialized AI agents using blackboard pattern architecture: Coordinator, Risk Assessment, Supply Planning, Financial Advisor, Resource Locator, Video Curator, Documentation
+- **FR-004a**: System MUST implement blackboard shared state for agent coordination, allowing parallel agent execution when dependencies permit
+- **FR-005**: System MUST display real-time agent activity with live log stream, agent-specific emojis, status indicators (Waiting/Active/Complete), and plain-language descriptions of each agent's current task
 - **FR-006**: System MUST generate risk assessment with severity levels (EXTREME/HIGH/MEDIUM/LOW) and specific threat analysis for user's location
 - **FR-007**: System MUST create personalized supply checklist organized by three budget tiers (Critical/Prepared/Comprehensive) with items scaled to household size
 - **FR-008**: System MUST generate family emergency plan including evacuation routes, meeting points, emergency contact template, and communication strategy
-- **FR-009**: System MUST identify local resources (shelters, food banks, unemployment offices) within user's area using geographic search
-- **FR-010**: System MUST recommend 5-7 relevant educational videos from FEMA, Red Cross, YouTube, and other authoritative sources
-- **FR-011**: System MUST generate downloadable PDF document containing complete preparedness plan with all sections
-- **FR-012**: System MUST create 30-day economic survival plan with day-by-day action items when Economic Crisis mode is selected
-- **FR-013**: System MUST categorize user expenses into Must-Pay (rent, utilities), Defer (credit cards), and Eliminate (subscriptions) buckets
-- **FR-014**: System MUST provide hardship letter templates pre-filled with user's situation for landlords, creditors, and utility companies
-- **FR-015**: System MUST assess benefits eligibility (unemployment insurance, SNAP, Medicaid) with estimated amounts and application links
+- **FR-009**: System MUST identify local resources using hybrid approach: static database (primary) + real-time API (secondary/fallback) for shelters, food banks, unemployment offices, supply stores, gas stations, hospitals, job centers, public libraries
+- **FR-009a**: System MUST implement cost management for resource location with rate limiting (max 100 API calls/day MVP) and 7-day result caching
+- **FR-010**: System MUST recommend 5-7 relevant educational videos from static curated library (10-20 videos per crisis type) including FEMA, Red Cross, and trusted creators, all under 5 minutes duration
+- **FR-011**: System MUST generate downloadable PDF document with simplified 2-page layout: Page 1 (Crisis Overview & Action Plan), Page 2 (Resources & Budget with QR codes)
+- **FR-011a**: PDF MUST work offline after generation, include QR codes for digital resources, and use print-optimized black & white friendly layout
+- **FR-012**: System MUST create 30-90 day economic survival plan focused on immediate survival (expense prioritization, food/essentials stockpiling, cost reduction tactics) when Economic Crisis mode is selected
+- **FR-012a**: System MUST ask user runtime questions for economic crisis: "What financial risks to assess?" and "What supply priorities to focus on?"
+- **FR-013**: System MUST provide Strategic Crisis Planning as optional secondary feature for economic mode, including unemployment filing guidance, resume/job resources, bill payment prioritization, and food assistance programs
+- **FR-014**: Strategic Planning feature (when enabled) MUST provide hardship letter templates, benefits eligibility assessment, and expanded long-term recovery guidance
+- **FR-015**: Budget tiers ($50/$100/$200+) MUST be enforced as hard limits in v1, never suggesting items that exceed user's chosen tier
+- **FR-015a**: When user selects lower budget tier BUT risk level is EXTREME, system MUST show warning: "⚠️ EXTREME risk detected. $50 tier may not provide adequate protection. Recommend $100+ tier." with option to upgrade
 - **FR-016**: System MUST be mobile-responsive with minimum 44px touch targets, readable font sizes (16px+), and work on 3G connections
 - **FR-017**: System MUST implement graceful degradation when individual agents fail, allowing other agents to continue and delivering partial plan if needed
 - **FR-018**: System MUST complete full plan generation in under 5 minutes (target: 2-3 minutes)
@@ -147,26 +172,32 @@ A family with limited funds needs to prepare for a disaster but can't afford the
 - **FR-021**: System MUST cite authoritative sources (FEMA, CDC, Red Cross, government agencies) for all recommendations
 - **FR-022**: System MUST implement offline-capable core functionality with critical checklists available without internet
 - **FR-023**: System MUST save user progress in browser local storage if they abandon form, with option to resume
-- **FR-024**: System MUST support both English language (MVP) with roadmap for Spanish [NEEDS CLARIFICATION: Spanish translation priority for v2?]
-- **FR-025**: System MUST log all agent interactions and errors for debugging and quality improvement [NEEDS CLARIFICATION: logging infrastructure - Application Insights, local files, or both?]
+- **FR-024**: System MUST support English language (MVP only), with internationalization architecture for future Spanish support
+- **FR-025**: System MUST log all agent interactions and errors for debugging and quality improvement using Python logging to stdout/files
+- **FR-026**: System MUST implement rate limiting: 10 requests/hour/IP for public access, no limits for judges during hackathon
+- **FR-026a**: System MUST implement cost protection with hard cap of $200 Claude API spend/month for MVP, showing "Service temporarily at capacity" if exceeded
+- **FR-027**: System MUST support dual deployment: Azure Container Apps (primary public URL) + local demo (backup for presentation)
+- **FR-028**: System MUST allow anonymous usage for 1 plan generation (demo) with optional email signup for saving multiple plans
 
 ### Key Entities
 
-- **Crisis Profile**: Represents a user's crisis scenario including crisis type (natural disaster or economic), specific threat (hurricane, shutdown, etc.), location (ZIP/city/state), household composition (adults, children, pets), housing type, budget constraint, and timestamp of creation.
+- **Blackboard (Shared State)**: Central coordination entity containing all intermediate and final results from agents. Includes CrisisProfile (input), RiskAssessment, SupplyPlan, EmergencyPlan/EconomicPlan, ResourceLocations, VideoRecommendations, and CompletePlan. Agents read from and write to blackboard atomically. Coordinator monitors blackboard to determine agent execution order and completion status.
 
-- **Risk Assessment**: Represents the evaluated threat level for a location including severity score (0-100), risk level (EXTREME/HIGH/MEDIUM/LOW), specific threats identified (e.g., "Category 5 hurricane within 100 miles"), historical data context, and affected geographic area.
+- **Crisis Profile**: Represents a user's crisis scenario including crisis type (natural disaster or economic), specific threat (hurricane, shutdown, etc.), location (ZIP/city/state), household composition (adults, children, pets), housing type, budget constraint, runtime user responses (for economic mode: risk priorities, supply focus), and timestamp of creation.
 
-- **Supply Plan**: Represents the personalized preparedness supplies including three tiers (Critical, Prepared, Comprehensive), items with quantities adjusted for household size, estimated prices, substitution suggestions, total cost by tier, and specific recommendations based on crisis type.
+- **Risk Assessment**: Represents the evaluated threat level for a location including severity score (0-100), risk level (EXTREME/HIGH/MEDIUM/LOW), specific threats identified (e.g., "Category 5 hurricane within 100 miles"), historical data context, affected geographic area. For economic mode: financial risk level based on user's stated situation.
 
-- **Emergency Plan**: Represents the family's action plan including evacuation routes (primary and secondary), meeting points (local and out-of-town), emergency contact template, communication strategy (how family will contact each other), and special considerations (pets, medications, mobility needs).
+- **Supply Plan**: Represents the personalized preparedness supplies including three tiers (Critical, Prepared, Comprehensive), items with quantities adjusted for household size, estimated prices, substitution suggestions, total cost by tier (never exceeding user's hard budget limit), and specific recommendations based on crisis type. For economic mode: food/essentials stockpiling within budget constraints.
 
-- **Economic Plan**: Represents the 30-day survival strategy including budget breakdown (Must-Pay/Defer/Eliminate), day-by-day action timeline, benefits eligibility assessment, estimated relief amounts, hardship letter templates, and local assistance resources.
+- **Emergency Plan**: Represents the family's action plan including evacuation routes (primary and secondary), meeting points (local and out-of-town), emergency contact template, communication strategy (how family will contact each other), and special considerations (pets, medications, mobility needs). Natural disaster mode only.
 
-- **Resource Location**: Represents a local assistance resource including name, address, phone, hours of operation, services offered, distance from user, and resource type (shelter, food bank, unemployment office, etc.).
+- **Economic Plan**: Represents the 30-90 day survival strategy including expense prioritization (immediate survival focus), food/essentials stockpiling, cost reduction tactics. Optional Strategic Crisis Planning expansion includes unemployment filing, job resources, bill payment strategies, benefits eligibility, hardship letter templates.
 
-- **Video Recommendation**: Represents an educational video including title, source (FEMA, Red Cross, YouTube channel), URL, duration, relevance score to user's crisis, and brief description of content.
+- **Resource Location**: Represents a local assistance resource including name, address, phone, hours of operation, services offered, distance from user, resource type (shelter, food bank, unemployment office, supply store, hospital, job center, library), and data source (static database vs. real-time API). Results cached for 7 days.
 
-- **Agent Activity Log**: Represents the real-time status of each agent including agent name, current status (Waiting/Active/Complete/Error), start time, completion time, current task description, progress percentage, and any inter-agent communications.
+- **Video Recommendation**: Represents an educational video from static curated library including title, source (FEMA, Red Cross, trusted creator), URL, duration (under 5 min), relevance score to user's crisis, and brief description of content.
+
+- **Agent Activity Log**: Represents the real-time status of each agent including agent name with emoji icon, current status (Waiting/Active/Complete/Error), start time, completion time, current task description (plain language), progress percentage, nested sub-tasks (indented with └─), tokens used, cost estimate, and any inter-agent communications via blackboard.
 
 ## Success Criteria *(mandatory)*
 
@@ -198,50 +229,60 @@ A family with limited funds needs to prepare for a disaster but can't afford the
 
 ## Clarifications
 
-[NEEDS CLARIFICATION: Should the system support creating accounts and saving multiple plans, or is it one-time anonymous usage for MVP?]
+**All clarifications resolved as of 2025-10-28. See [clarifications.md](./clarifications.md) for detailed decisions.**
 
-[NEEDS CLARIFICATION: For the Video Curator Agent, should we use YouTube Data API (requires API key) or scrape/curate a static list of high-quality videos?]
-
-[NEEDS CLARIFICATION: Should the Resource Locator Agent use Google Maps API (costs money) or OpenStreetMap (free but less comprehensive)?]
-
-[NEEDS CLARIFICATION: What's the priority for additional natural disaster types beyond hurricane? Should MVP support all 6 types (hurricane, earthquake, wildfire, flood, tornado, blizzard) or focus on 2-3?]
-
-[NEEDS CLARIFICATION: For hackathon demo, do we need real agent processing or can we simulate agent activity with pre-generated responses to ensure reliable demo?]
-
-[NEEDS CLARIFICATION: Should we support multiple languages in MVP, or is English-only acceptable with internationalization architecture for future?]
+### Key Resolved Decisions:
+- **Accounts**: Anonymous usage for 1 plan (demo), optional email signup for saving multiple plans
+- **Video Curator**: Static curated library (10-20 videos per crisis type, under 5 min each)
+- **Resource Locator**: Hybrid approach (static database primary, Google Places API fallback with rate limiting)
+- **Natural Disaster Types**: Support all 6 types for MVP (hurricane, earthquake, wildfire, flood, tornado, blizzard)
+- **Hackathon Demo**: Real agent processing (dual deployment: Azure + local backup)
+- **Languages**: English only for MVP, internationalization architecture for future Spanish support
+- **Agent Orchestration**: Blackboard pattern with parallel execution when dependencies permit
+- **Economic Crisis**: Ask user runtime questions for risk/supply priorities, focus on 30-90 day survival (MVP), Strategic Crisis Planning as optional secondary feature (v1.1)
+- **Budget Tiers**: Hard limits enforced, warnings shown but user must choose to upgrade
+- **PDF**: Simplified 2-page layout with QR codes, print-optimized, offline-capable
 
 ## Review & Acceptance Checklist
 
 ### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain (6 clarifications needed above)
-- [ ] All requirements are testable and unambiguous
-- [ ] Success criteria are measurable and realistic for 4-day timeline
-- [ ] Edge cases cover major failure scenarios
+- [x] No [NEEDS CLARIFICATION] markers remain - all 6+ clarifications resolved
+- [x] All requirements are testable and unambiguous
+- [x] Success criteria are measurable and realistic for 4-day timeline
+- [x] Edge cases cover major failure scenarios
 
 ### Constitutional Compliance
-- [ ] Life-Saving Priority (Article I): Critical information flow is clear in user stories
-- [ ] Accessibility & Inclusion (Article II): Mobile-first design specified, budget consciousness embedded
-- [ ] Multi-Agent Transparency (Article III): User Story 3 explicitly demonstrates agent visibility
-- [ ] Data Privacy (Article IV): FR-019 addresses security, FR-025 clarifies logging
-- [ ] Budget-Consciousness (Article V): Supply plan tiers in User Story 5, economic crisis focus
-- [ ] Evidence-Based (Article VI): FR-021 requires source citation
-- [ ] Speed & Simplicity (Article VII): 5-minute target in SC-001, minimal questionnaire
-- [ ] Test-First (Article VIII): Will be enforced during implementation phase
-- [ ] Graceful Degradation (Article IX): FR-017 specifies agent failure handling
+- [x] Life-Saving Priority (Article I): Critical information flow is clear in user stories
+- [x] Accessibility & Inclusion (Article II): Mobile-first design specified, budget consciousness embedded with hard limits
+- [x] Multi-Agent Transparency (Article III): User Story 3 explicitly demonstrates agent visibility with emoji log stream
+- [x] Data Privacy (Article IV): FR-019, FR-028 address security and anonymous usage
+- [x] Budget-Consciousness (Article V): Supply plan tiers with hard limits, economic crisis focus on survival
+- [x] Evidence-Based (Article VI): FR-021 requires source citation from FEMA/CDC/Red Cross
+- [x] Speed & Simplicity (Article VII): 5-minute target in SC-001, minimal questionnaire with runtime clarifications
+- [x] Test-First (Article VIII): Minimal smoke tests for MVP, comprehensive tests post-hackathon
+- [x] Graceful Degradation (Article IX): FR-017 specifies agent failure handling
+- [x] Blackboard Shared State (Article X): FR-004a implements blackboard pattern for parallel agent coordination
 
 ### Scope Management
-- [ ] MVP scope is achievable in 4 days (Oct 27-31)
-- [ ] P1 priorities deliver standalone value if P2/P3 are cut
-- [ ] Technical stack aligns with hackathon constraints (Azure, Python, Flask, Microsoft Agent Framework)
-- [ ] Clarifications identified for user to resolve before implementation plan
+- [x] MVP scope is achievable in 4 days (Oct 27-31) with time assessments during build
+- [x] P1 priorities (US1, US3) deliver standalone value if P2/P3 are cut
+- [x] Technical stack aligns with hackathon constraints (Azure, Python, Flask, blackboard pattern)
+- [x] All clarifications resolved via clarifications.md document
 
 ### Hackathon Readiness
-- [ ] Multi-agent demonstration value is clear (User Story 3)
-- [ ] Real-world problem urgency is evident (Hurricane Melissa, Government Shutdown)
-- [ ] Technical sophistication is showcase-worthy (7 agents, orchestration, PDF generation)
-- [ ] Demo-ability is considered (NFR-005 for offline fallback)
+- [x] Multi-agent demonstration value is clear (User Story 3 with emoji log stream)
+- [x] Real-world problem urgency is evident (Hurricane Melissa, Government Shutdown)
+- [x] Technical sophistication is showcase-worthy (7 agents, blackboard orchestration, dual-mode crisis handling, PDF generation)
+- [x] Demo-ability is considered (dual deployment: Azure + local backup)
+- [x] Judging criteria addressed: creativity (dual crisis modes), execution (complete working demo), impact (life-saving potential)
 
 **Next Steps**:
-1. User reviews and provides clarifications for 6 [NEEDS CLARIFICATION] items
-2. User validates constitutional compliance and hackathon alignment
-3. Once approved, proceed to `/speckit.plan` to define technical implementation
+1. Update plan.md with blackboard pattern and revised time estimates
+2. Update tasks.md with new task breakdown
+3. Perform SWOT analyses for economic agent roles and financial data collection
+4. Create test scenarios document with 5 critical scenarios
+5. Update data-model.md with blackboard entities
+6. Update api-spec.json with new endpoints
+7. Resume implementation with updated specifications
+
+**Status**: ✅ Specification complete and approved - ready for implementation planning updates

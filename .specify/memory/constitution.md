@@ -24,10 +24,12 @@
 **Users must understand which AI agents are working and what they're doing.**
 
 - Real-time agent activity display with clear status indicators
+- Live log stream with agent-specific emojis for visual scanning
 - Plain-language explanations of what each agent does
-- Progress indicators for long-running operations
+- Progress indicators for long-running operations (percentage or checkmarks)
 - Error messages that explain what went wrong and what to do next
 - Agent handoffs must be seamless and logged
+- Overall transparency: show what each agent DID (high-level), not granular data field access
 
 ### IV. Data Privacy & Security
 **User crisis data is sensitive and must be protected.**
@@ -85,14 +87,26 @@
 - Clear error messages with manual alternatives
 - Health checks for all critical dependencies
 
+### X. Blackboard Shared State Architecture
+**Multi-agent coordination must enable parallel processing while maintaining consistency.**
+
+- Implement blackboard pattern for agent orchestration
+- Shared state contains all intermediate agent results
+- Agents read from blackboard when preconditions met
+- Agents write results back to blackboard atomically
+- Coordinator monitors blackboard and determines agent execution order
+- Agent dependencies discovered iteratively through testing
+- Parallel execution when agents have no dependencies
+
 ## Technical Standards
 
 ### Agent Architecture
-- Microsoft Agent Framework for orchestration
+- Blackboard pattern for multi-agent coordination
+- Microsoft Agent Framework (AutoGen) for orchestration support
 - Claude API (Anthropic) for AI reasoning
-- Agent communication via message passing
+- Agent communication via shared blackboard state
 - Each agent is independently testable
-- Coordinator agent handles failure recovery
+- Coordinator agent handles failure recovery and execution order
 
 ### Performance Requirements
 - Initial page load: < 3 seconds
@@ -170,4 +184,13 @@ For the MVP (Oct 27-31, 2025):
 - Use placeholder data for initial testing
 - Document known limitations for future work
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-28 | **Last Amended**: 2025-10-28
+**Version**: 1.1.0 | **Ratified**: 2025-10-28 | **Last Amended**: 2025-10-28
+
+---
+
+## Amendment Log
+
+### v1.1.0 (2025-10-28)
+- **Added Article X**: Blackboard Shared State Architecture principle
+- **Updated Article III**: Added emoji log stream requirement and overall transparency clarification
+- **Updated Agent Architecture**: Changed from generic "message passing" to specific "blackboard pattern"
