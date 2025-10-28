@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+prepsmart.db
+
+# Output
+output/
+*.pdf
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# CI/CD
+.github/
