@@ -133,8 +133,7 @@ class CoordinatorAgent:
         from .financial_advisor_agent import FinancialAdvisorAgent
         from .resource_locator_agent import ResourceLocatorAgent
         from .video_curator_agent import VideoCuratorAgent
-        # TODO: Import other agents as they're implemented
-        # from .documentation_agent import DocumentationAgent
+        from .documentation_agent import DocumentationAgent
 
         agent_map = {
             "RiskAssessmentAgent": RiskAssessmentAgent(self.claude_client),
@@ -142,7 +141,7 @@ class CoordinatorAgent:
             "FinancialAdvisorAgent": FinancialAdvisorAgent(self.claude_client),
             "ResourceLocatorAgent": ResourceLocatorAgent(self.claude_client),
             "VideoCuratorAgent": VideoCuratorAgent(self.claude_client),
-            # TODO: Add other agents as implemented
+            "DocumentationAgent": DocumentationAgent(self.claude_client),
         }
 
         # Filter to only agents we have implementations for
