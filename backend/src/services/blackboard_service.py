@@ -62,6 +62,9 @@ class BlackboardService:
         cursor = conn.cursor()
 
         try:
+            # Serialize crisis_profile with datetime handling (default=str converts datetime to ISO format)
+            crisis_profile_json = json.dumps(blackboard.crisis_profile, default=str)
+
             cursor.execute("""
                 INSERT INTO blackboards (
                     task_id,
@@ -79,7 +82,7 @@ class BlackboardService:
                 blackboard.task_id,
                 blackboard.created_at.isoformat(),
                 blackboard.updated_at.isoformat(),
-                json.dumps(blackboard.crisis_profile),
+                crisis_profile_json,
                 blackboard.status,
                 json.dumps(blackboard.agents_completed),
                 json.dumps(blackboard.agents_failed),

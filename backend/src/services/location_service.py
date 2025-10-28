@@ -32,7 +32,12 @@ class LocationService:
         """
         # Try ZIP code first
         if 'zip_code' in location_data and location_data['zip_code']:
-            return self._geocode_zip(location_data['zip_code'])
+            # Pass city and state if provided to preserve them
+            return self._geocode_zip(
+                location_data['zip_code'],
+                city=location_data.get('city'),
+                state=location_data.get('state')
+            )
 
         # Try city/state
         if 'city' in location_data and 'state' in location_data:
@@ -44,12 +49,14 @@ class LocationService:
         logger.warning("Location data missing required fields")
         return None
 
-    def _geocode_zip(self, zip_code: str) -> Optional[dict]:
+    def _geocode_zip(self, zip_code: str, city: str = None, state: str = None) -> Optional[dict]:
         """
         Geocode ZIP code (simplified for MVP).
 
         Args:
             zip_code: US ZIP code
+            city: Optional city name (preserved if provided)
+            state: Optional state code (preserved if provided)
 
         Returns:
             Location dict or None if invalid
@@ -58,7 +65,7 @@ class LocationService:
             logger.warning(f"Invalid ZIP code format: {zip_code}")
             return None
 
-        # For MVP: Accept ZIP without geocoding
+        # For MVP: Accept ZIP without geocoding, preserve city/state if provided
         # In production, use uszipcode or external geocoding API
         location = {
             'zip_code': zip_code,
@@ -66,6 +73,12 @@ class LocationService:
             'latitude': None,
             'longitude': None
         }
+
+        # Preserve city and state if provided
+        if city:
+            location['city'] = city
+        if state:
+            location['state'] = state
 
         logger.info(f"Accepted ZIP {zip_code} (simplified validation)")
         return location
