@@ -1,15 +1,19 @@
 """API routes for PrepSmart."""
 
+import asyncio
 import json
 import uuid
 from datetime import datetime
+from pathlib import Path
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 
 from ..models.crisis_profile import CrisisProfile
 from ..services.cache_service import CacheService
 from ..services.claude_client import ClaudeClient
 from ..services.location_service import LocationService
+from ..services.blackboard_service import blackboard_service
+from ..agents.coordinator_agent import CoordinatorAgent
 from ..utils.logger import setup_logger
 from .app import get_db
 
@@ -19,6 +23,7 @@ logger = setup_logger(__name__)
 cache_service = CacheService()
 location_service = LocationService()
 claude_client = ClaudeClient()
+coordinator = CoordinatorAgent(claude_client)
 
 
 def register_routes(app: Flask) -> None:
@@ -126,8 +131,41 @@ def register_routes(app: Flask) -> None:
 
             logger.info(f"Created crisis plan task: {task_id}")
 
-            # TODO: Trigger async agent processing here
-            # For now, return task ID immediately
+            # Trigger async agent processing in background
+            # Flask doesn't natively support async, so we run in a thread
+            import threading
+
+            def run_coordinator():
+                """Run coordinator in background thread."""
+                try:
+                    logger.info(f"🎯 Starting coordinator for task_id={task_id}")
+
+                    # Create asyncio event loop for this thread
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+
+                    # Convert crisis_profile to dict
+                    crisis_dict = crisis_profile.model_dump()
+
+                    # Run coordinator
+                    completed_blackboard = loop.run_until_complete(
+                        coordinator.generate_plan(crisis_dict)
+                    )
+
+                    logger.info(f"✅ Coordinator completed for task_id={task_id}")
+                    logger.info(f"   Agents completed: {completed_blackboard.agents_completed}")
+                    logger.info(f"   Agents failed: {completed_blackboard.agents_failed}")
+                    logger.info(f"   Total tokens: {completed_blackboard.total_tokens_used}")
+                    logger.info(f"   Total cost: ${completed_blackboard.total_cost_estimate:.4f}")
+
+                    loop.close()
+
+                except Exception as e:
+                    logger.error(f"❌ Coordinator error for task_id={task_id}: {e}", exc_info=True)
+
+            # Start background thread
+            thread = threading.Thread(target=run_coordinator, daemon=True)
+            thread.start()
 
             return jsonify({
                 "task_id": task_id,
@@ -211,19 +249,83 @@ def register_routes(app: Flask) -> None:
     @app.route('/api/crisis/<task_id>/result', methods=['GET'])
     def get_crisis_result(task_id: str):
         """Get complete crisis plan."""
-        # TODO: Implement full result retrieval with agent outputs
-        return jsonify({
-            "message": "Plan still processing. Check /status endpoint.",
-            "task_id": task_id
-        }), 202
+        try:
+            # Get blackboard from database
+            blackboard = blackboard_service.get_blackboard(task_id)
+
+            if not blackboard:
+                return jsonify({"error": "NotFound", "message": "Task not found"}), 404
+
+            # Check if plan is complete
+            if blackboard.status != "completed":
+                return jsonify({
+                    "message": "Plan still processing. Check /status endpoint.",
+                    "task_id": task_id,
+                    "status": blackboard.status,
+                    "agents_completed": blackboard.agents_completed,
+                    "agents_failed": blackboard.agents_failed
+                }), 202
+
+            # Return complete plan
+            return jsonify({
+                "task_id": task_id,
+                "status": "completed",
+                "crisis_profile": blackboard.crisis_profile,
+                "risk_assessment": blackboard.risk_assessment,
+                "supply_plan": blackboard.supply_plan,
+                "economic_plan": blackboard.economic_plan,
+                "resource_locations": blackboard.resource_locations,
+                "video_recommendations": blackboard.video_recommendations,
+                "complete_plan": blackboard.complete_plan,
+                "pdf_path": blackboard.pdf_path,
+                "execution_time_seconds": blackboard.total_execution_seconds,
+                "total_tokens_used": blackboard.total_tokens_used,
+                "total_cost_estimate": blackboard.total_cost_estimate,
+                "agents_completed": blackboard.agents_completed,
+                "agents_failed": blackboard.agents_failed
+            })
+
+        except Exception as e:
+            logger.error(f"Error getting result for {task_id}: {e}")
+            return jsonify({"error": "InternalError", "message": "Failed to get result"}), 500
 
     @app.route('/api/crisis/<task_id>/pdf', methods=['GET'])
     def download_pdf(task_id: str):
         """Download crisis plan PDF."""
-        # TODO: Implement PDF generation
-        return jsonify({
-            "message": "PDF generation in progress. Retry in 5 seconds.",
-            "task_id": task_id
-        }), 202
+        try:
+            # Get blackboard from database
+            blackboard = blackboard_service.get_blackboard(task_id)
+
+            if not blackboard:
+                return jsonify({"error": "NotFound", "message": "Task not found"}), 404
+
+            # Check if PDF is ready
+            if not blackboard.pdf_path:
+                return jsonify({
+                    "message": "PDF generation in progress. Retry in 5 seconds.",
+                    "task_id": task_id,
+                    "status": blackboard.status
+                }), 202
+
+            # Check if PDF file exists
+            pdf_path = Path(blackboard.pdf_path)
+            if not pdf_path.exists():
+                logger.error(f"PDF file not found: {pdf_path}")
+                return jsonify({
+                    "error": "NotFound",
+                    "message": "PDF file not found on server"
+                }), 404
+
+            # Serve PDF file
+            return send_file(
+                pdf_path,
+                mimetype='application/pdf',
+                as_attachment=True,
+                download_name=f"crisis_plan_{task_id}.pdf"
+            )
+
+        except Exception as e:
+            logger.error(f"Error downloading PDF for {task_id}: {e}")
+            return jsonify({"error": "InternalError", "message": "Failed to download PDF"}), 500
 
     logger.info("API routes registered")
