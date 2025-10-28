@@ -8,9 +8,157 @@
 
 PrepSmart uses several interconnected data entities representing crisis scenarios, AI agent outputs, and user plans. This document defines the structure of each entity for consistent implementation across Python backend (using Pydantic models), JSON API contracts, and database schemas.
 
+### Architecture Note: Blackboard Pattern
+PrepSmart uses a **blackboard pattern** for multi-agent coordination. The Blackboard entity (defined below) serves as shared state, containing all intermediate and final results from agents. Agents read from and write to the blackboard atomically. The Coordinator Agent monitors the blackboard to determine agent execution order and completion status.
+
 ---
 
-## 1. Crisis Profile
+## 1. Blackboard (Shared State)
+
+**Description**: Central coordination entity for multi-agent orchestration using the blackboard pattern. Contains all input data, intermediate agent results, and final complete plan.
+
+### Schema
+
+```python
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
+
+class Blackboard(BaseModel):
+    """Shared state for multi-agent coordination."""
+
+    # Identifiers
+    task_id: str = Field(..., description="Unique UUID linking all agent outputs")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Input Data
+    crisis_profile: Optional[dict] = Field(None, description="User's crisis scenario (CrisisProfile)")
+
+    # Intermediate Agent Results
+    risk_assessment: Optional[dict] = Field(None, description="From Risk Assessment Agent")
+    supply_plan: Optional[dict] = Field(None, description="From Supply Planning Agent")
+    emergency_plan: Optional[dict] = Field(None, description="From Emergency Plan Generator (natural disaster)")
+    economic_plan: Optional[dict] = Field(None, description="From Financial Advisor (economic crisis)")
+    resource_locations: Optional[list[dict]] = Field(None, description="From Resource Locator Agent")
+    video_recommendations: Optional[list[dict]] = Field(None, description="From Video Curator Agent")
+
+    # Final Output
+    complete_plan: Optional[dict] = Field(None, description="From Documentation Agent")
+    pdf_path: Optional[str] = Field(None, description="Path to generated PDF")
+
+    # Coordination State
+    status: str = Field(default="initialized", description="'initialized', 'processing', 'completed', 'failed'")
+    agents_completed: list[str] = Field(default_factory=list, description="List of agent names that have written to blackboard")
+    agents_failed: list[str] = Field(default_factory=list, description="List of agent names that failed")
+
+    # Execution Tracking
+    execution_start: Optional[datetime] = None
+    execution_end: Optional[datetime] = None
+    total_execution_seconds: Optional[float] = None
+
+    # Cost Tracking
+    total_tokens_used: int = Field(default=0, description="Sum of all agent token usage")
+    total_cost_estimate: float = Field(default=0.0, description="Estimated Claude API cost in USD")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "status": "processing",
+                "crisis_profile": {"crisis_mode": "natural_disaster", "specific_threat": "hurricane"},
+                "risk_assessment": {"overall_risk_level": "EXTREME"},
+                "agents_completed": ["RiskAssessmentAgent", "SupplyPlanningAgent"],
+                "total_tokens_used": 3500,
+                "total_cost_estimate": 0.042
+            }
+        }
+```
+
+### Agent Interaction Pattern
+
+```python
+# Agent reads from blackboard
+async def process(self, blackboard: Blackboard) -> Blackboard:
+    crisis_profile = blackboard.crisis_profile
+
+    # Some agents may depend on other agents' results
+    if blackboard.risk_assessment:
+        risk_level = blackboard.risk_assessment['overall_risk_level']
+
+    # Agent does its work
+    result = await self.generate_output(crisis_profile)
+
+    # Agent writes to blackboard atomically
+    blackboard.supply_plan = result
+    blackboard.agents_completed.append(self.agent_name)
+    blackboard.total_tokens_used += self.tokens_used
+    blackboard.updated_at = datetime.utcnow()
+
+    return blackboard
+```
+
+### Coordinator Monitoring
+
+```python
+# Coordinator determines which agents can run
+def get_ready_agents(blackboard: Blackboard) -> list[str]:
+    """Returns list of agents whose preconditions are met."""
+    ready = []
+
+    # Risk Assessment Agent: Always ready (no dependencies)
+    if "RiskAssessmentAgent" not in blackboard.agents_completed:
+        ready.append("RiskAssessmentAgent")
+
+    # Supply Planning Agent: Depends on Risk Assessment
+    if (blackboard.risk_assessment is not None and
+        "SupplyPlanningAgent" not in blackboard.agents_completed):
+        ready.append("SupplyPlanningAgent")
+
+    # ... etc for other agents
+
+    return ready
+```
+
+### Database Schema (SQLite)
+
+```sql
+CREATE TABLE blackboards (
+    task_id TEXT PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    crisis_profile_json TEXT NOT NULL,
+    risk_assessment_json TEXT,
+    supply_plan_json TEXT,
+    emergency_plan_json TEXT,
+    economic_plan_json TEXT,
+    resource_locations_json TEXT,
+    video_recommendations_json TEXT,
+    complete_plan_json TEXT,
+    pdf_path TEXT,
+
+    status TEXT DEFAULT 'initialized',
+    agents_completed_json TEXT,  -- JSON array
+    agents_failed_json TEXT,     -- JSON array
+
+    execution_start TIMESTAMP,
+    execution_end TIMESTAMP,
+    total_execution_seconds REAL,
+
+    total_tokens_used INTEGER DEFAULT 0,
+    total_cost_estimate REAL DEFAULT 0.0,
+
+    FOREIGN KEY (task_id) REFERENCES crisis_profiles(task_id)
+);
+
+CREATE INDEX idx_blackboard_status ON blackboards(status);
+CREATE INDEX idx_blackboard_updated ON blackboards(updated_at);
+```
+
+---
+
+## 2. Crisis Profile
 
 **Description**: Represents a user's crisis scenario input, collected via the questionnaire form.
 
@@ -62,17 +210,17 @@ class CrisisProfile(BaseModel):
     )
 
     # Economic Crisis Specific Fields (optional)
-    financial_situation: Optional[dict] = Field(
+    runtime_questions: Optional[dict] = Field(
         None,
-        description="Financial details for economic crisis mode"
+        description="User responses to runtime questions asked by agents during economic crisis mode"
     )
-    # financial_situation sub-fields:
-    #   - current_income: float (monthly, can be 0)
-    #   - monthly_expenses: float
-    #   - available_savings: float
-    #   - debt_obligations: float
-    #   - dependents: int
-    #   - employment_status: str ("furloughed", "laid_off", "reduced_hours", "unemployed")
+    # runtime_questions sub-fields (collected by agents, not upfront):
+    #   - primary_concern: str (e.g., "Eviction or foreclosure", "Losing utilities", "Can't afford food")
+    #   - runway: str (e.g., "Less than 2 weeks", "2-4 weeks", "1-3 months")
+    #   - top_priority: str (e.g., "Keep my housing", "Feed my family")
+    #   - income_check: str ("Yes" or "No")
+    #   - income_range: Optional[str] (e.g., "$0-500", "$500-1500", if income_check is "Yes")
+    #   - supply_focus: Optional[str] (e.g., "Food stockpiling", "Medication", "Essential bills")
 
     @validator('location')
     def validate_location(cls, v):
@@ -117,7 +265,7 @@ class CrisisProfile(BaseModel):
   },
   "housing_type": "apartment",
   "budget_tier": 100,
-  "financial_situation": null
+  "runtime_questions": null
 }
 ```
 
@@ -133,7 +281,7 @@ CREATE TABLE crisis_profiles (
     household_json TEXT NOT NULL, -- JSON string
     housing_type TEXT NOT NULL,
     budget_tier INTEGER NOT NULL,
-    financial_situation_json TEXT, -- JSON string, nullable
+    runtime_questions_json TEXT, -- JSON string, nullable (for economic crisis mode)
     status TEXT DEFAULT 'processing', -- 'processing', 'completed', 'failed'
     completed_at TIMESTAMP
 );
