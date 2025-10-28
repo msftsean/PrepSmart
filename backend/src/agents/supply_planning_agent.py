@@ -1,4 +1,9 @@
-"""Supply Planning Agent for emergency supply list generation."""
+"""Supply Planning Agent for emergency supply list generation.
+
+Supports dual-mode operation:
+- natural_disaster: Emergency supplies (water, food, batteries, first aid)
+- economic_crisis: Food stockpiling within budget constraints
+"""
 
 import json
 from datetime import datetime
@@ -6,13 +11,19 @@ from pathlib import Path
 from typing import Any, Dict
 
 from .base_agent import BaseAgent
+from ..models.blackboard import Blackboard
 from ..utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
 
 class SupplyPlanningAgent(BaseAgent):
-    """Agent that creates personalized emergency supply lists."""
+    """Agent that creates personalized supply lists for crisis scenarios.
+
+    Mode-adaptive behavior:
+    - Natural disaster: Emergency supplies for immediate survival
+    - Economic crisis: Food stockpiling for 30-90 day runway
+    """
 
     def __init__(self, claude_client, timeout: int = 30):
         """Initialize Supply Planning Agent."""
@@ -50,69 +61,200 @@ class SupplyPlanningAgent(BaseAgent):
             }
         }
 
-    async def process(self, crisis_profile: Dict[str, Any]) -> Dict[str, Any]:
+    async def process(self, blackboard: Blackboard) -> Blackboard:
         """
-        Create personalized supply plan.
+        Create personalized supply plan using blackboard pattern.
+
+        Reads from blackboard:
+        - crisis_profile (crisis_mode, specific_threat, household, budget_tier)
+        - risk_assessment (for context on severity)
+
+        Writes to blackboard:
+        - supply_plan (tier-based supply recommendations)
+
+        Args:
+            blackboard: Shared blackboard state
+
+        Returns:
+            Updated blackboard with supply_plan populated
+        """
+        self.start_time = datetime.utcnow()
+        crisis_profile = blackboard.crisis_profile
+
+        if not crisis_profile:
+            raise ValueError("Blackboard missing crisis_profile")
+
+        task_id = crisis_profile.get('task_id', 'unknown')
+        crisis_mode = crisis_profile.get('crisis_mode')
+
+        # Get mode-specific UI presentation
+        agent_label = self.get_agent_label(crisis_mode)
+        agent_emoji = self.get_agent_emoji(crisis_mode)
+
+        logger.info(f"{agent_emoji} {agent_label} starting for task_id={task_id}, mode={crisis_mode}")
+
+        try:
+            # Route to mode-specific processing
+            if crisis_mode == "natural_disaster":
+                supply_plan = await self._process_natural_disaster(crisis_profile, blackboard, task_id)
+            elif crisis_mode == "economic_crisis":
+                supply_plan = await self._process_economic_crisis(crisis_profile, blackboard, task_id)
+            else:
+                raise ValueError(f"Unknown crisis_mode: {crisis_mode}")
+
+            # Write to blackboard
+            blackboard.supply_plan = supply_plan
+            blackboard.mark_agent_complete(
+                self.agent_class_name,
+                self.tokens_used,
+                self.cost
+            )
+
+            self.end_time = datetime.utcnow()
+            logger.info(f"{agent_emoji} {agent_label} completed: {supply_plan.get('total_items', 0)} items")
+
+            return blackboard
+
+        except Exception as e:
+            self.end_time = datetime.utcnow()
+            logger.error(f"{agent_emoji} {agent_label} error: {e}")
+            raise
+
+    async def _process_natural_disaster(
+        self,
+        crisis_profile: Dict[str, Any],
+        blackboard: Blackboard,
+        task_id: str
+    ) -> Dict[str, Any]:
+        """
+        Process natural disaster supply planning.
+
+        Creates emergency supply list for immediate survival (72 hours - 2 weeks).
 
         Args:
             crisis_profile: User's crisis scenario
+            blackboard: Current blackboard state
+            task_id: Task identifier
 
         Returns:
-            Dict with supply plan data
+            Supply plan with tier-based recommendations
         """
-        self.start_time = datetime.utcnow()
+        # Validate required fields
+        self.validate_input(crisis_profile, ['specific_threat', 'household', 'budget_tier'])
 
-        try:
-            # Validate required fields
-            self.validate_input(crisis_profile, ['specific_threat', 'household', 'budget_tier'])
+        threat = crisis_profile['specific_threat']
+        household = crisis_profile['household']
+        budget = crisis_profile['budget_tier']
 
-            threat = crisis_profile['specific_threat']
-            household = crisis_profile['household']
-            budget = crisis_profile['budget_tier']
-            task_id = crisis_profile.get('task_id', 'unknown')
+        household_size = household.get('adults', 0) + household.get('children', 0)
 
-            household_size = household.get('adults', 0) + household.get('children', 0)
+        logger.info(f"📦 Creating emergency supply plan for {household_size} people with ${budget} budget")
 
-            self.log_activity(task_id, "active", f"Creating supply plan for {household_size} people with ${budget} budget", 25)
+        # Get risk assessment from blackboard
+        risk_level = "MEDIUM"
+        if blackboard.risk_assessment:
+            risk_level = blackboard.risk_assessment.get('overall_risk_level', 'MEDIUM')
 
-            # Get risk assessment if available (for context)
-            risk_level = crisis_profile.get('risk_assessment', {}).get('overall_risk_level', 'MEDIUM')
-
-            # Build prompt for Claude
-            prompt = self._build_supply_prompt(threat, household, budget, risk_level)
-            system_prompt = """You are an emergency preparedness supply planning expert.
+        # Build prompt for Claude
+        prompt = self._build_natural_disaster_prompt(threat, household, budget, risk_level)
+        system_prompt = """You are an emergency preparedness supply planning expert.
 You help families prepare emergency supply kits based on their specific situation and budget.
 You must respect budget constraints and provide practical, actionable recommendations.
 Always include free alternatives when possible.
 Base recommendations on FEMA and Red Cross guidance."""
 
-            # Call Claude API
-            response, tokens, cost = await self.claude_client.generate_async(
-                prompt=prompt,
-                system=system_prompt,
-                max_tokens=3000
-            )
+        # Call Claude API
+        response, tokens, cost = await self.claude_client.generate_async(
+            prompt=prompt,
+            system=system_prompt,
+            max_tokens=3000
+        )
 
-            self.log_activity(task_id, "active", "Processing supply recommendations", 75)
+        self.tokens_used = tokens
+        self.cost = cost
 
-            # Parse Claude's response
-            supply_plan = self._parse_supply_response(response, threat, household_size, budget)
-            supply_plan['tokens_used'] = tokens
-            supply_plan['cost_estimate'] = cost
+        logger.info(f"📦 Processing supply recommendations (tokens={tokens}, cost=${cost:.4f})")
 
-            self.end_time = datetime.utcnow()
-            self.log_activity(task_id, "complete", f"Supply plan ready: {supply_plan['total_items']} items", 100)
+        # Parse Claude's response
+        supply_plan = self._parse_supply_response(response, threat, household_size, budget)
+        supply_plan['tokens_used'] = tokens
+        supply_plan['cost_estimate'] = cost
+        supply_plan['task_id'] = task_id
 
-            return supply_plan
+        return supply_plan
 
-        except Exception as e:
-            self.end_time = datetime.utcnow()
-            logger.error(f"Supply Planning Agent error: {e}")
-            self.log_activity(task_id, "error", f"Error: {str(e)}", 0)
-            raise
+    async def _process_economic_crisis(
+        self,
+        crisis_profile: Dict[str, Any],
+        blackboard: Blackboard,
+        task_id: str
+    ) -> Dict[str, Any]:
+        """
+        Process economic crisis supply planning.
 
-    def _build_supply_prompt(self, threat: str, household: Dict, budget: int, risk_level: str) -> str:
-        """Build prompt for supply planning."""
+        Creates food stockpiling plan for 30-90 day runway within budget constraints.
+
+        Args:
+            crisis_profile: User's crisis scenario
+            blackboard: Current blackboard state
+            task_id: Task identifier
+
+        Returns:
+            Supply plan focused on food security
+        """
+        # Validate required fields
+        self.validate_input(crisis_profile, ['specific_threat', 'household', 'budget_tier'])
+
+        threat = crisis_profile['specific_threat']
+        household = crisis_profile['household']
+        budget = crisis_profile['budget_tier']
+        runtime_questions = crisis_profile.get('runtime_questions', {})
+
+        household_size = household.get('adults', 0) + household.get('children', 0)
+
+        logger.info(f"📊 Creating economic crisis supply plan for {household_size} people with ${budget} budget")
+
+        # Get risk assessment from blackboard
+        runway = "Unknown"
+        primary_concern = runtime_questions.get('primary_concern', 'Unknown')
+
+        if blackboard.risk_assessment:
+            runway = blackboard.risk_assessment.get('financial_runway', 'Unknown')
+
+        # Build prompt for Claude
+        prompt = self._build_economic_crisis_prompt(
+            threat, household, budget, runway, primary_concern, runtime_questions
+        )
+        system_prompt = """You are a financial crisis preparedness expert specializing in food security.
+You help families build affordable food stockpiles for economic uncertainty (job loss, recession, inflation).
+You must respect strict budget constraints and focus on maximizing calories per dollar.
+Prioritize non-perishable staples with long shelf life.
+Base recommendations on USDA nutrition guidelines and emergency food storage best practices."""
+
+        # Call Claude API
+        response, tokens, cost = await self.claude_client.generate_async(
+            prompt=prompt,
+            system=system_prompt,
+            max_tokens=3000
+        )
+
+        self.tokens_used = tokens
+        self.cost = cost
+
+        logger.info(f"📊 Processing food stockpiling recommendations (tokens={tokens}, cost=${cost:.4f})")
+
+        # Parse Claude's response
+        supply_plan = self._parse_supply_response(response, threat, household_size, budget)
+        supply_plan['tokens_used'] = tokens
+        supply_plan['cost_estimate'] = cost
+        supply_plan['task_id'] = task_id
+        supply_plan['financial_runway'] = runway
+        supply_plan['primary_concern'] = primary_concern
+
+        return supply_plan
+
+    def _build_natural_disaster_prompt(self, threat: str, household: Dict, budget: int, risk_level: str) -> str:
+        """Build prompt for natural disaster supply planning."""
         adults = household.get('adults', 0)
         children = household.get('children', 0)
         pets = household.get('pets', 0)
@@ -139,6 +281,11 @@ For the ${budget} budget, ONLY include items up to the appropriate tier.
 - $50 budget = CRITICAL tier only
 - $100 budget = CRITICAL + PREPARED tiers
 - $200+ budget = ALL three tiers
+
+STRICT BUDGET ENFORCEMENT:
+- NEVER exceed ${budget} total cost
+- If EXTREME risk + $50 budget, include warning about limited supplies
+- Prioritize survival essentials (water, food, first aid) over convenience
 
 For each item, provide:
 - Name
@@ -174,10 +321,109 @@ Return as JSON:
     "comprehensive": {{ ... }}
   }},
   "storage_tips": ["tip1", "tip2", ...],
-  "acquisition_timeline": "Purchase within X hours/days"
+  "acquisition_timeline": "Purchase within X hours/days",
+  "budget_warning": "Optional warning if EXTREME risk + low budget"
 }}
 
 Be specific to {threat}. Scale quantities for {adults + children} people. Stay within ${budget} budget."""
+
+        return prompt
+
+    def _build_economic_crisis_prompt(
+        self,
+        threat: str,
+        household: Dict,
+        budget: int,
+        runway: str,
+        primary_concern: str,
+        runtime_questions: Dict
+    ) -> str:
+        """Build prompt for economic crisis supply planning (food stockpiling)."""
+        adults = household.get('adults', 0)
+        children = household.get('children', 0)
+        pets = household.get('pets', 0)
+        special_needs = household.get('special_needs', '')
+
+        # Extract runtime question: What should we prioritize in your budget?
+        priority = runtime_questions.get('budget_priority', 'balanced nutrition and shelf life')
+
+        prompt = f"""Create a food stockpiling plan for economic crisis ({threat}):
+
+Household:
+- Adults: {adults}
+- Children: {children}
+- Pets: {pets}
+- Special needs: {special_needs or 'None'}
+
+Financial Situation:
+- Budget: ${budget}
+- Estimated runway: {runway}
+- Primary concern: {primary_concern}
+- Budget priority: {priority}
+
+Create a food stockpiling plan with these THREE tiers:
+
+1. CRITICAL tier (30 days of essential calories)
+2. PREPARED tier (60 days of balanced nutrition)
+3. COMPREHENSIVE tier (90 days with variety)
+
+For the ${budget} budget, ONLY include items up to the appropriate tier.
+- $50 budget = CRITICAL tier only (maximize calories/dollar)
+- $100 budget = CRITICAL + PREPARED tiers
+- $200+ budget = ALL three tiers
+
+ECONOMIC CRISIS FOCUS:
+- Prioritize non-perishable staples (rice, beans, pasta, canned goods)
+- Maximize shelf life (1+ year)
+- Focus on calories per dollar
+- Include protein sources (canned tuna, peanut butter, dried beans)
+- Consider dietary restrictions in household
+- NEVER exceed ${budget} total cost
+
+For each item, provide:
+- Name
+- Quantity (pounds, cans, boxes)
+- Unit
+- Estimated price
+- Priority tier (critical/prepared/comprehensive)
+- Category (grains/protein/canned_goods/etc)
+- Shelf life
+- Calories per dollar (rough estimate)
+- Storage tips
+- Rationale
+
+Return as JSON:
+{{
+  "recommended_tier": "critical|prepared|comprehensive",
+  "tiers": {{
+    "critical": {{
+      "items": [
+        {{
+          "name": "White Rice (bulk)",
+          "quantity": 20,
+          "unit": "pounds",
+          "estimated_price": 15.00,
+          "category": "grains",
+          "shelf_life": "2-3 years",
+          "calories_per_dollar": "~1200 cal/$1",
+          "storage_tips": "Store in airtight container",
+          "rationale": "High calories per dollar, long shelf life, versatile"
+        }},
+        ...
+      ],
+      "total_cost": 45.00,
+      "duration_days": 30,
+      "total_calories": 54000
+    }},
+    "prepared": {{ ... }},
+    "comprehensive": {{ ... }}
+  }},
+  "storage_tips": ["Cool, dry place", "Airtight containers", "Rotate stock"],
+  "acquisition_timeline": "Purchase gradually over 2-4 weeks to spread cost",
+  "nutritional_notes": "Supplement with vitamins if needed"
+}}
+
+Be specific to economic crisis food security. Scale for {adults + children} people. Respect ${budget} budget strictly."""
 
         return prompt
 
