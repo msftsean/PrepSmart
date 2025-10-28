@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrepSmart API Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>PrepSmart API Test</h1>
+    <p>Test the backend API directly</p>
+
+    <button onclick="testAPI()">Test Crisis Plan Start (POST)</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'https://prepsmart-backend.politegrass-4005e0e6.eastus.azurecontainerapps.io/api';
+
+    async function testAPI() {
+      const resultEl = document.getElementById('result');
+      resultEl.textContent = 'Sending POST request...';
+
+      try {
+        const payload = {
+          crisis_mode: 'natural_disaster',
+          specific_threat: 'hurricane',
+          location: {
+            city: 'Miami',
+            state: 'FL',
+            zip_code: '33139'
+          },
+          household: {
+            adults: 2,
+            children: 1,
+            pets: 0
+          },
+          housing_type: 'apartment',
+          budget_tier: 100
+        };
+
+        console.log('Sending:', payload);
+
+        const response = await fetch(`${API_BASE_URL}/crisis/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        resultEl.textContent = `Status: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+
+        if (data.task_id) {
+          console.log('Success! Task ID:', data.task_id);
+        }
+
+      } catch (error) {
+        resultEl.textContent = `Error: ${error.message}`;
+        console.error('API Test Error:', error);
+      }
+    }
+  </script>
+</body>
+</html>
