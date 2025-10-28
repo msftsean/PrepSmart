@@ -15,7 +15,7 @@ from ..services.location_service import LocationService
 from ..services.blackboard_service import blackboard_service
 from ..agents.coordinator_agent import CoordinatorAgent
 from ..utils.logger import setup_logger
-from .app import get_db
+from .database import get_db
 
 logger = setup_logger(__name__)
 

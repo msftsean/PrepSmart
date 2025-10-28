@@ -2,7 +2,9 @@
 
 from typing import Optional
 
-from uszipcode import SearchEngine
+# NOTE: uszipcode has compatibility issues with Python 3.12 and SQLAlchemy 2.0
+# For MVP, using simplified validation without external geocoding
+# from uszipcode import SearchEngine
 
 from ..utils.logger import setup_logger
 from ..utils.validators import validate_zip_code
@@ -14,8 +16,9 @@ class LocationService:
     """Service for location validation and geocoding."""
 
     def __init__(self) -> None:
-        """Initialize location service with uszipcode."""
-        self.search = SearchEngine()
+        """Initialize location service."""
+        # self.search = SearchEngine()
+        logger.info("LocationService initialized (simplified mode for MVP)")
 
     def validate_and_geocode(self, location_data: dict) -> Optional[dict]:
         """
@@ -43,7 +46,7 @@ class LocationService:
 
     def _geocode_zip(self, zip_code: str) -> Optional[dict]:
         """
-        Geocode ZIP code.
+        Geocode ZIP code (simplified for MVP).
 
         Args:
             zip_code: US ZIP code
@@ -55,32 +58,21 @@ class LocationService:
             logger.warning(f"Invalid ZIP code format: {zip_code}")
             return None
 
-        try:
-            result = self.search.by_zipcode(zip_code)
+        # For MVP: Accept ZIP without geocoding
+        # In production, use uszipcode or external geocoding API
+        location = {
+            'zip_code': zip_code,
+            'country': 'US',
+            'latitude': None,
+            'longitude': None
+        }
 
-            if not result or not result.major_city:
-                logger.warning(f"ZIP code not found: {zip_code}")
-                return None
-
-            location = {
-                'zip_code': result.zipcode,
-                'city': result.major_city,
-                'state': result.state,
-                'country': 'US',
-                'latitude': result.lat,
-                'longitude': result.lng
-            }
-
-            logger.info(f"Geocoded ZIP {zip_code}: {location['city']}, {location['state']}")
-            return location
-
-        except Exception as e:
-            logger.error(f"Geocoding error for ZIP {zip_code}: {e}")
-            return None
+        logger.info(f"Accepted ZIP {zip_code} (simplified validation)")
+        return location
 
     def _geocode_city_state(self, city: str, state: str) -> Optional[dict]:
         """
-        Geocode city and state.
+        Geocode city and state (simplified for MVP).
 
         Args:
             city: City name
@@ -89,39 +81,22 @@ class LocationService:
         Returns:
             Location dict or None if not found
         """
-        try:
-            # Search by city and state
-            results = self.search.by_city_and_state(city, state)
+        # For MVP: Accept city/state without geocoding
+        # In production, use uszipcode or external geocoding API
+        location = {
+            'city': city,
+            'state': state,
+            'country': 'US',
+            'latitude': None,
+            'longitude': None
+        }
 
-            if not results or len(results) == 0:
-                logger.warning(f"City/state not found: {city}, {state}")
-                return None
-
-            # Use first result
-            result = results[0]
-
-            location = {
-                'city': result.major_city or city,
-                'state': result.state,
-                'country': 'US',
-                'latitude': result.lat,
-                'longitude': result.lng
-            }
-
-            # Add ZIP if available
-            if result.zipcode:
-                location['zip_code'] = result.zipcode
-
-            logger.info(f"Geocoded {city}, {state}: {location}")
-            return location
-
-        except Exception as e:
-            logger.error(f"Geocoding error for {city}, {state}: {e}")
-            return None
+        logger.info(f"Accepted {city}, {state} (simplified validation)")
+        return location
 
     def get_zip_info(self, zip_code: str) -> Optional[dict]:
         """
-        Get detailed information about a ZIP code.
+        Get detailed information about a ZIP code (simplified for MVP).
 
         Args:
             zip_code: US ZIP code
@@ -132,23 +107,15 @@ class LocationService:
         if not validate_zip_code(zip_code):
             return None
 
-        try:
-            result = self.search.by_zipcode(zip_code)
-
-            if not result:
-                return None
-
-            return {
-                'zipcode': result.zipcode,
-                'city': result.major_city,
-                'state': result.state,
-                'county': result.county,
-                'lat': result.lat,
-                'lng': result.lng,
-                'population': result.population,
-                'density': result.population_density
-            }
-
-        except Exception as e:
-            logger.error(f"Error getting ZIP info for {zip_code}: {e}")
-            return None
+        # For MVP: Return minimal info
+        # In production, use uszipcode or external geocoding API
+        return {
+            'zipcode': zip_code,
+            'city': None,
+            'state': None,
+            'county': None,
+            'lat': None,
+            'lng': None,
+            'population': None,
+            'density': None
+        }
