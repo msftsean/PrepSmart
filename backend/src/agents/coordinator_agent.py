@@ -130,15 +130,16 @@ class CoordinatorAgent:
         # Import agents dynamically to avoid circular imports
         from .risk_assessment_agent import RiskAssessmentAgent
         from .supply_planning_agent import SupplyPlanningAgent
+        from .financial_advisor_agent import FinancialAdvisorAgent
         # TODO: Import other agents as they're implemented
         # from .resource_locator_agent import ResourceLocatorAgent
         # from .video_curator_agent import VideoCuratorAgent
-        # from .financial_advisor_agent import FinancialAdvisorAgent
         # from .documentation_agent import DocumentationAgent
 
         agent_map = {
             "RiskAssessmentAgent": RiskAssessmentAgent(self.claude_client),
             "SupplyPlanningAgent": SupplyPlanningAgent(self.claude_client),
+            "FinancialAdvisorAgent": FinancialAdvisorAgent(self.claude_client),
             # TODO: Add other agents as implemented
         }
 
