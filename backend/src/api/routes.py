@@ -97,10 +97,21 @@ def register_routes(app: Flask) -> None:
             data['created_at'] = datetime.utcnow()
 
             # Validate and geocode location if needed
-            if 'location' in data and not data['location'].get('latitude'):
-                location = location_service.validate_and_geocode(data['location'])
-                if location:
-                    data['location'] = location
+            if 'location' in data:
+                # If location is a string, convert to dict format
+                if isinstance(data['location'], str):
+                    # Try to parse as "City, State" or just city name
+                    parts = [p.strip() for p in data['location'].split(',')]
+                    if len(parts) == 2:
+                        data['location'] = {'city': parts[0], 'state': parts[1]}
+                    else:
+                        data['location'] = {'city': data['location']}
+
+                # If location dict doesn't have geocoding, add it
+                if isinstance(data['location'], dict) and not data['location'].get('latitude'):
+                    location = location_service.validate_and_geocode(data['location'])
+                    if location:
+                        data['location'] = location
 
             # Validate with Pydantic
             crisis_profile = CrisisProfile(**data)

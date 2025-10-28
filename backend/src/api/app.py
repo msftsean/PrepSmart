@@ -43,6 +43,8 @@ def create_app() -> Flask:
 # Import database functions from separate module to avoid circular imports
 from .database import init_db, get_db
 
+# Initialize database before creating app
+init_db()
 
 # Create app instance
 app = create_app()
