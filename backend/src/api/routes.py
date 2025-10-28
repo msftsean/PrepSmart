@@ -184,7 +184,31 @@ def register_routes(app: Flask) -> None:
     def get_crisis_status(task_id: str):
         """Get crisis plan generation status."""
         try:
-            # Get agent logs for this task
+            # Check blackboard for authoritative status
+            from ..services.blackboard_service import blackboard_service
+            blackboard = blackboard_service.get_blackboard(task_id)
+
+            if not blackboard:
+                # Check if task exists in crisis_profiles
+                conn = get_db()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM crisis_profiles WHERE task_id = ?", (task_id,))
+                task = cursor.fetchone()
+                conn.close()
+
+                if not task:
+                    return jsonify({"error": "NotFound", "message": "Task not found"}), 404
+
+                # Task exists but no blackboard yet - still initializing
+                return jsonify({
+                    "task_id": task_id,
+                    "status": "processing",
+                    "progress_percentage": 0,
+                    "agents": [],
+                    "estimated_completion_seconds": 180
+                })
+
+            # Get agent logs for detailed progress
             conn = get_db()
             cursor = conn.cursor()
             cursor.execute("""
@@ -194,17 +218,6 @@ def register_routes(app: Flask) -> None:
             """, (task_id,))
             logs = cursor.fetchall()
             conn.close()
-
-            if not logs and task_id:
-                # Check if task exists
-                conn = get_db()
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM crisis_profiles WHERE task_id = ?", (task_id,))
-                task = cursor.fetchone()
-                conn.close()
-
-                if not task:
-                    return jsonify({"error": "NotFound", "message": "Task not found"}), 404
 
             # Convert logs to dict
             agents = []
@@ -220,19 +233,20 @@ def register_routes(app: Flask) -> None:
                     "error_message": log['error_message']
                 })
 
-            # Determine overall status
-            if not agents:
-                status = "processing"
-                progress = 0
-            elif all(a['status'] == 'complete' for a in agents):
-                status = "completed"
+            # Use blackboard status as authoritative source
+            status = blackboard.status
+
+            # Calculate progress based on agents completed
+            total_agents = 5  # RiskAssessment, SupplyPlanning, ResourceLocator, VideoCurator, Documentation
+            completed_agents = len(blackboard.agents_completed)
+            failed_agents = len(blackboard.agents_failed)
+
+            if status == "completed":
                 progress = 100
-            elif any(a['status'] == 'error' for a in agents):
-                status = "failed"
-                progress = sum(a['progress_percentage'] for a in agents) // len(agents)
+            elif status == "failed":
+                progress = (completed_agents / total_agents) * 100 if total_agents > 0 else 0
             else:
-                status = "processing"
-                progress = sum(a['progress_percentage'] for a in agents) // len(agents) if agents else 0
+                progress = (completed_agents / total_agents) * 100 if total_agents > 0 else 0
 
             return jsonify({
                 "task_id": task_id,
