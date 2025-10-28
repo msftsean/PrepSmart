@@ -1,0 +1,30 @@
+# PrepSmart Backend Dependencies
+# Python 3.11+
+
+# Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# AI & Agent Framework
+anthropic==0.8.1
+pyautogen==0.2.5
+
+# PDF Generation
+reportlab==4.0.7
+
+# Data Models & Validation
+pydantic==2.5.2
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.23
+
+# Location Services
+uszipcode==1.0.1
+
+# HTTP Client
+requests==2.31.0
+httpx==0.25.2
+
+# Utilities
+python-dotenv==1.0.0
