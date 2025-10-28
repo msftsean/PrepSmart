@@ -389,6 +389,9 @@ async function handleSubmit(e) {
 function buildCrisisProfile() {
   const profile = {
     crisis_mode: formData.crisis_mode,
+    specific_threat: formData.crisis_mode === 'natural_disaster'
+      ? formData.disaster_type
+      : formData.crisis_type,
     location: {
       zip_code: formData.zip_code,
       city: formData.city,
@@ -397,16 +400,15 @@ function buildCrisisProfile() {
     household: {
       adults: formData.adults,
       children: formData.children,
-      pets: formData.pets,
-      housing_type: formData.housing_type
-    }
+      pets: formData.pets
+    },
+    housing_type: formData.housing_type
   };
 
   if (formData.crisis_mode === 'natural_disaster') {
-    profile.disaster_type = formData.disaster_type;
     profile.budget_tier = formData.budget_tier;
   } else {
-    profile.crisis_type = formData.crisis_type;
+    profile.budget_tier = 100; // Default budget tier for economic crisis
     profile.financial_situation = {
       current_income: formData.current_income,
       monthly_expenses: formData.monthly_expenses,
