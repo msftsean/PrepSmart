@@ -24,7 +24,7 @@ class ClaudeClient:
         self.api_key = api_key or settings.claude_api_key
         self.client = Anthropic(api_key=self.api_key)
         self.async_client = AsyncAnthropic(api_key=self.api_key)
-        self.model = "claude-3-5-sonnet-20241022"
+        self.model = "claude-sonnet-4-5-20250929"  # Latest Sonnet 4.5 (2025)
         self.max_tokens = 4096
 
     def generate(
@@ -49,19 +49,25 @@ class ClaudeClient:
         try:
             logger.info(f"Generating with Claude: prompt length={len(prompt)}")
 
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=max_tokens or self.max_tokens,
-                temperature=temperature,
-                system=system if system else None,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            # Build request parameters
+            params = {
+                "model": self.model,
+                "max_tokens": max_tokens or self.max_tokens,
+                "temperature": temperature,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+
+            # Add system prompt if provided
+            if system:
+                params["system"] = system
+
+            response = self.client.messages.create(**params)
 
             text = response.content[0].text
             tokens = response.usage.input_tokens + response.usage.output_tokens
 
-            # Estimate cost (Claude 3.5 Sonnet pricing)
-            # Input: $3/MTok, Output: $15/MTok (approximate)
+            # Estimate cost (Claude Sonnet 4.5 pricing)
+            # Input: $3/MTok, Output: $15/MTok
             input_cost = (response.usage.input_tokens / 1_000_000) * 3
             output_cost = (response.usage.output_tokens / 1_000_000) * 15
             cost = input_cost + output_cost
@@ -96,13 +102,19 @@ class ClaudeClient:
         try:
             logger.info(f"Generating async with Claude: prompt length={len(prompt)}")
 
-            response = await self.async_client.messages.create(
-                model=self.model,
-                max_tokens=max_tokens or self.max_tokens,
-                temperature=temperature,
-                system=system if system else None,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            # Build request parameters
+            params = {
+                "model": self.model,
+                "max_tokens": max_tokens or self.max_tokens,
+                "temperature": temperature,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+
+            # Add system prompt if provided
+            if system:
+                params["system"] = system
+
+            response = await self.async_client.messages.create(**params)
 
             text = response.content[0].text
             tokens = response.usage.input_tokens + response.usage.output_tokens
