@@ -113,10 +113,55 @@ def init_db() -> None:
         ON agent_logs(status)
     """)
 
+    # Create blackboards table for multi-agent coordination
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS blackboards (
+            task_id TEXT PRIMARY KEY,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            crisis_profile_json TEXT NOT NULL,
+            risk_assessment_json TEXT,
+            supply_plan_json TEXT,
+            emergency_plan_json TEXT,
+            economic_plan_json TEXT,
+            resource_locations_json TEXT,
+            video_recommendations_json TEXT,
+            complete_plan_json TEXT,
+            pdf_path TEXT,
+
+            status TEXT DEFAULT 'initialized',
+            agents_completed_json TEXT,
+            agents_failed_json TEXT,
+
+            execution_start TIMESTAMP,
+            execution_end TIMESTAMP,
+            total_execution_seconds REAL,
+
+            total_tokens_used INTEGER DEFAULT 0,
+            total_cost_estimate REAL DEFAULT 0.0,
+
+            errors_json TEXT,
+
+            FOREIGN KEY (task_id) REFERENCES crisis_profiles(task_id)
+        )
+    """)
+
+    # Create indices for blackboards
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_blackboard_status
+        ON blackboards(status)
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_blackboard_updated
+        ON blackboards(updated_at)
+    """)
+
     conn.commit()
     conn.close()
 
-    logger.info("Database initialized successfully")
+    logger.info("Database initialized successfully (crisis_profiles, agent_logs, blackboards)")
 
 
 def get_db() -> sqlite3.Connection:
