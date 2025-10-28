@@ -6,7 +6,7 @@
 
 const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
-  : '/api';
+  : 'https://prepsmart-backend.politegrass-4005e0e6.eastus.azurecontainerapps.io/api';
 
 class PrepSmartAPI {
   /**
