@@ -132,8 +132,8 @@ class CoordinatorAgent:
         from .supply_planning_agent import SupplyPlanningAgent
         from .financial_advisor_agent import FinancialAdvisorAgent
         from .resource_locator_agent import ResourceLocatorAgent
+        from .video_curator_agent import VideoCuratorAgent
         # TODO: Import other agents as they're implemented
-        # from .video_curator_agent import VideoCuratorAgent
         # from .documentation_agent import DocumentationAgent
 
         agent_map = {
@@ -141,6 +141,7 @@ class CoordinatorAgent:
             "SupplyPlanningAgent": SupplyPlanningAgent(self.claude_client),
             "FinancialAdvisorAgent": FinancialAdvisorAgent(self.claude_client),
             "ResourceLocatorAgent": ResourceLocatorAgent(self.claude_client),
+            "VideoCuratorAgent": VideoCuratorAgent(self.claude_client),
             # TODO: Add other agents as implemented
         }
 
