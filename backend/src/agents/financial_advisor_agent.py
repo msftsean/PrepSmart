@@ -112,7 +112,9 @@ Base recommendations on:
 - CFPB (Consumer Financial Protection Bureau) guidance
 - State unemployment program rules
 - Federal benefits eligibility criteria
-- Proven debt management strategies"""
+- Proven debt management strategies
+
+IMPORTANT: Return valid JSON only. Ensure all strings are properly escaped with no unescaped quotes or newlines inside string values. Use \\n for newlines within strings."""
 
             # Call Claude API
             response, tokens, cost = await self.claude_client.generate_async(
@@ -366,6 +368,12 @@ Be specific to {threat}. Scale for household of {adults + children} people. Be r
             else:
                 json_str = response.strip()
 
+            # Try to fix common JSON issues
+            # Remove any trailing commas before closing braces/brackets
+            import re
+            json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
+
+            # Try parsing
             data = json.loads(json_str)
 
             # Build structured economic plan
