@@ -143,7 +143,10 @@ function validateCurrentStep() {
   let isValid = true;
 
   requiredFields.forEach(field => {
-    if (!field.value || field.value === '') {
+    // For number inputs, 0 is a valid value, so check for null/undefined/empty string only
+    const isEmpty = field.value === null || field.value === undefined || field.value === '';
+
+    if (isEmpty) {
       isValid = false;
       field.classList.add('error');
 
