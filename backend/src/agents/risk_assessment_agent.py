@@ -80,6 +80,15 @@ class RiskAssessmentAgent(BaseAgent):
             )
 
             self.end_time = datetime.utcnow()
+
+            # Log completion for UI
+            self.log_activity(
+                task_id,
+                "completed",
+                f"Risk assessment complete: {risk_assessment.get('overall_risk_level')} risk",
+                100
+            )
+
             logger.info(
                 f"{agent_emoji} {agent_label} completed: "
                 f"risk={risk_assessment.get('overall_risk_level')}, "

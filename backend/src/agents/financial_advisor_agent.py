@@ -144,6 +144,15 @@ IMPORTANT: Return valid JSON only. Ensure all strings are properly escaped with 
             )
 
             self.end_time = datetime.utcnow()
+
+            # Log completion for UI
+            self.log_activity(
+                task_id,
+                "completed",
+                "Economic survival strategy complete",
+                100
+            )
+
             logger.info(
                 f"{agent_emoji} {agent_label} completed: "
                 f"{len(economic_plan.get('daily_actions', []))} daily actions, "

@@ -104,6 +104,15 @@ class DocumentationAgent(BaseAgent):
             )
 
             self.end_time = datetime.utcnow()
+
+            # Log completion for UI
+            self.log_activity(
+                task_id,
+                "completed",
+                "Documentation and PDF generation complete",
+                100
+            )
+
             logger.info(
                 f"{agent_emoji} {agent_label} completed: "
                 f"PDF generated at {pdf_path}"

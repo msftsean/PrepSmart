@@ -237,6 +237,15 @@ class ResourceLocatorAgent(BaseAgent):
             )
 
             self.end_time = datetime.utcnow()
+
+            # Log completion for UI
+            self.log_activity(
+                task_id,
+                "completed",
+                "Resource search complete",
+                100
+            )
+
             logger.info(
                 f"{agent_emoji} {agent_label} completed: "
                 f"{len(resource_locations)} resources found"

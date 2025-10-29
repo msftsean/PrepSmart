@@ -111,6 +111,15 @@ class SupplyPlanningAgent(BaseAgent):
             )
 
             self.end_time = datetime.utcnow()
+
+            # Log completion for UI
+            self.log_activity(
+                task_id,
+                "completed",
+                "Supply plan complete",
+                100
+            )
+
             logger.info(f"{agent_emoji} {agent_label} completed: {supply_plan.get('total_items', 0)} items")
 
             return blackboard
