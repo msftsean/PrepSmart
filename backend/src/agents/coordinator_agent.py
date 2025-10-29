@@ -134,14 +134,19 @@ class CoordinatorAgent:
         from .resource_locator_agent import ResourceLocatorAgent
         from .video_curator_agent import VideoCuratorAgent
         from .documentation_agent import DocumentationAgent
+        from ..services.claude_client import ClaudeClient
 
+        # Create Haiku client for simple agents (cost optimization)
+        haiku_client = ClaudeClient(model="claude-haiku-4-5-20250929")
+
+        # Use Haiku for simple agents, Sonnet for complex reasoning (Financial Advisor)
         agent_map = {
-            "RiskAssessmentAgent": RiskAssessmentAgent(self.claude_client),
-            "SupplyPlanningAgent": SupplyPlanningAgent(self.claude_client),
-            "FinancialAdvisorAgent": FinancialAdvisorAgent(self.claude_client),
-            "ResourceLocatorAgent": ResourceLocatorAgent(self.claude_client),
-            "VideoCuratorAgent": VideoCuratorAgent(self.claude_client),
-            "DocumentationAgent": DocumentationAgent(self.claude_client),
+            "RiskAssessmentAgent": RiskAssessmentAgent(haiku_client),
+            "SupplyPlanningAgent": SupplyPlanningAgent(haiku_client),
+            "FinancialAdvisorAgent": FinancialAdvisorAgent(self.claude_client),  # Keep Sonnet
+            "ResourceLocatorAgent": ResourceLocatorAgent(haiku_client),  # No Claude API calls, but consistent
+            "VideoCuratorAgent": VideoCuratorAgent(haiku_client),  # No Claude API calls, but consistent
+            "DocumentationAgent": DocumentationAgent(haiku_client),
         }
 
         # Filter to only agents we have implementations for

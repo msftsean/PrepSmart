@@ -14,17 +14,18 @@ logger = setup_logger(__name__)
 class ClaudeClient:
     """Client for interacting with Claude API."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         """
         Initialize Claude client.
 
         Args:
             api_key: Anthropic API key (defaults to settings)
+            model: Claude model to use (defaults to Sonnet 4.5)
         """
         self.api_key = api_key or settings.claude_api_key
         self.client = Anthropic(api_key=self.api_key)
         self.async_client = AsyncAnthropic(api_key=self.api_key)
-        self.model = "claude-sonnet-4-5-20250929"  # Latest Sonnet 4.5 (2025)
+        self.model = model or "claude-sonnet-4-5-20250929"  # Latest Sonnet 4.5 (2025)
         self.max_tokens = 4096
 
     def generate(
@@ -66,10 +67,15 @@ class ClaudeClient:
             text = response.content[0].text
             tokens = response.usage.input_tokens + response.usage.output_tokens
 
-            # Estimate cost (Claude Sonnet 4.5 pricing)
-            # Input: $3/MTok, Output: $15/MTok
-            input_cost = (response.usage.input_tokens / 1_000_000) * 3
-            output_cost = (response.usage.output_tokens / 1_000_000) * 15
+            # Estimate cost based on model
+            if "haiku" in self.model.lower():
+                # Claude Haiku 4.0 pricing: $0.25/MTok input, $1.25/MTok output
+                input_cost = (response.usage.input_tokens / 1_000_000) * 0.25
+                output_cost = (response.usage.output_tokens / 1_000_000) * 1.25
+            else:
+                # Claude Sonnet 4.5 pricing: $3/MTok input, $15/MTok output
+                input_cost = (response.usage.input_tokens / 1_000_000) * 3
+                output_cost = (response.usage.output_tokens / 1_000_000) * 15
             cost = input_cost + output_cost
 
             logger.info(f"Claude response: {len(text)} chars, {tokens} tokens, ${cost:.4f}")
@@ -119,9 +125,15 @@ class ClaudeClient:
             text = response.content[0].text
             tokens = response.usage.input_tokens + response.usage.output_tokens
 
-            # Estimate cost
-            input_cost = (response.usage.input_tokens / 1_000_000) * 3
-            output_cost = (response.usage.output_tokens / 1_000_000) * 15
+            # Estimate cost based on model
+            if "haiku" in self.model.lower():
+                # Claude Haiku 4.0 pricing: $0.25/MTok input, $1.25/MTok output
+                input_cost = (response.usage.input_tokens / 1_000_000) * 0.25
+                output_cost = (response.usage.output_tokens / 1_000_000) * 1.25
+            else:
+                # Claude Sonnet 4.5 pricing: $3/MTok input, $15/MTok output
+                input_cost = (response.usage.input_tokens / 1_000_000) * 3
+                output_cost = (response.usage.output_tokens / 1_000_000) * 15
             cost = input_cost + output_cost
 
             logger.info(f"Claude async response: {len(text)} chars, {tokens} tokens, ${cost:.4f}")
