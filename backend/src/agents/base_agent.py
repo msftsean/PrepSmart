@@ -141,8 +141,51 @@ class BaseAgent(ABC):
             f"[{self.agent_class_name}] Task {task_id}: {status} - {description} ({progress}%)"
         )
 
-        # TODO: Store in database for real-time UI updates
-        # For now, just log to console
+        # Store in database for real-time UI updates
+        try:
+            from ..api.database import get_db
+            import uuid
+
+            conn = get_db()
+            cursor = conn.cursor()
+
+            # Check if log entry exists for this agent and task
+            cursor.execute("""
+                SELECT log_id FROM agent_logs
+                WHERE task_id = ? AND agent_name = ?
+                ORDER BY started_at DESC LIMIT 1
+            """, (task_id, self.agent_class_name))
+
+            existing = cursor.fetchone()
+
+            if existing:
+                # Update existing log
+                cursor.execute("""
+                    UPDATE agent_logs
+                    SET status = ?,
+                        current_task_description = ?,
+                        progress_percentage = ?,
+                        completed_at = CASE WHEN ? IN ('completed', 'failed') THEN CURRENT_TIMESTAMP ELSE completed_at END,
+                        execution_time_seconds = CASE WHEN ? IN ('completed', 'failed') THEN
+                            (julianday(CURRENT_TIMESTAMP) - julianday(started_at)) * 86400.0
+                            ELSE execution_time_seconds END
+                    WHERE log_id = ?
+                """, (status, description, progress, status, status, existing[0]))
+            else:
+                # Insert new log
+                log_id = str(uuid.uuid4())
+                cursor.execute("""
+                    INSERT INTO agent_logs (
+                        log_id, task_id, agent_name, agent_type, status,
+                        current_task_description, progress_percentage, started_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """, (log_id, task_id, self.agent_class_name, self.agent_class_name,
+                      status, description, progress))
+
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Failed to log activity to database: {e}")
 
     def get_execution_time(self) -> Optional[float]:
         """

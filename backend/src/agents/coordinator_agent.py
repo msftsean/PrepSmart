@@ -38,7 +38,7 @@ class CoordinatorAgent:
         """
         self.claude_client = claude_client
         self.max_retries = 2
-        self.agent_timeout = 60  # seconds per agent
+        self.agent_timeout = 120  # seconds per agent (increased for Financial Advisor)
 
     def get_ready_agents(self, blackboard: Blackboard) -> list[str]:
         """
