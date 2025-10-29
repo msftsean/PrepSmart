@@ -33,13 +33,29 @@ function initializeForm() {
     backLink.href = `crisis-select.html?mode=${mode}`;
   }
 
-  // Show appropriate step 3 content
+  // Show appropriate step 3 content and manage required fields
   if (mode === 'economic') {
     document.getElementById('budget-card')?.classList.add('hidden');
     document.getElementById('financial-card')?.classList.remove('hidden');
+
+    // Remove required from budget-tier (hidden for economic mode)
+    document.getElementById('budget-tier')?.removeAttribute('required');
+
+    // Add required to financial fields
+    document.getElementById('current-income')?.setAttribute('required', 'required');
+    document.getElementById('monthly-expenses')?.setAttribute('required', 'required');
+    document.getElementById('available-savings')?.setAttribute('required', 'required');
   } else {
     document.getElementById('budget-card')?.classList.remove('hidden');
     document.getElementById('financial-card')?.classList.add('hidden');
+
+    // Add required to budget-tier (needed for natural disaster mode)
+    document.getElementById('budget-tier')?.setAttribute('required', 'required');
+
+    // Remove required from financial fields (hidden for natural disaster mode)
+    document.getElementById('current-income')?.removeAttribute('required');
+    document.getElementById('monthly-expenses')?.removeAttribute('required');
+    document.getElementById('available-savings')?.removeAttribute('required');
   }
 
   // Store mode
