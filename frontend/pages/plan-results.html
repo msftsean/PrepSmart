@@ -554,33 +554,83 @@
             <span class="metric-value">${summary.runway_days} days</span>
           </div>`;
         }
-        if (summary.total_expenses !== undefined) {
+        if (summary.estimated_monthly_expenses_before !== undefined) {
           html += `<div class="metric">
-            <span class="metric-label">Monthly Expenses:</span>
-            <span class="metric-value">$${summary.total_expenses.toFixed(2)}</span>
+            <span class="metric-label">Monthly Expenses (Before):</span>
+            <span class="metric-value">$${summary.estimated_monthly_expenses_before.toFixed(2)}</span>
           </div>`;
         }
-        if (summary.revised_expenses !== undefined) {
+        if (summary.estimated_monthly_expenses_after !== undefined) {
           html += `<div class="metric">
-            <span class="metric-label">Reduced Expenses:</span>
-            <span class="metric-value">$${summary.revised_expenses.toFixed(2)}</span>
+            <span class="metric-label">Reduced Expenses (After):</span>
+            <span class="metric-value">$${summary.estimated_monthly_expenses_after.toFixed(2)}</span>
+          </div>`;
+        }
+        if (summary.available_savings !== undefined) {
+          html += `<div class="metric">
+            <span class="metric-label">Available Savings:</span>
+            <span class="metric-value">$${summary.available_savings.toFixed(2)}</span>
           </div>`;
         }
 
         html += `</div>`;
       }
 
-      // Action plan
-      if (economic.action_plan && economic.action_plan.length > 0) {
-        html += `<h3 class="mb-3 mt-4">30-Day Action Plan</h3>`;
-        economic.action_plan.slice(0, 10).forEach(action => {
+      // Daily Actions
+      if (economic.daily_actions && economic.daily_actions.length > 0) {
+        html += `<h3 class="mb-3 mt-4">Daily Actions</h3>`;
+        economic.daily_actions.forEach(action => {
           html += `
-            <div class="action-item">
-              <div class="action-day">Day ${action.day}</div>
-              <div class="action-text">${action.action}</div>
+            <div class="action-item" style="padding: 1rem; background: var(--color-gray-50); border-radius: var(--radius-md); margin-bottom: 0.5rem;">
+              <div style="display: flex; gap: 1rem; align-items: start;">
+                <div style="font-weight: 700; color: var(--color-primary); min-width: 60px;">Day ${action.day}</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 0.25rem;">${action.action}</div>
+                  ${action.priority ? `<div style="font-size: 0.875rem; color: var(--color-gray-600);">Priority: ${action.priority}</div>` : ''}
+                  ${action.time_required ? `<div style="font-size: 0.875rem; color: var(--color-gray-600);">Time: ${action.time_required}</div>` : ''}
+                </div>
+              </div>
             </div>
           `;
         });
+      }
+
+      // Eligible Benefits
+      if (economic.eligible_benefits && economic.eligible_benefits.length > 0) {
+        html += `<h3 class="mb-3 mt-4">Eligible Benefits</h3>`;
+        economic.eligible_benefits.forEach(benefit => {
+          html += `
+            <div style="padding: 1rem; background: var(--color-success-light); border-left: 3px solid var(--color-success); border-radius: var(--radius-md); margin-bottom: 0.75rem;">
+              <div style="font-weight: 700; margin-bottom: 0.5rem;">${benefit.program || benefit.name}</div>
+              ${benefit.estimated_amount ? `<div style="color: var(--color-success); font-weight: 600; margin-bottom: 0.25rem;">${benefit.estimated_amount}</div>` : ''}
+              ${benefit.timeline ? `<div style="font-size: 0.875rem; margin-bottom: 0.5rem;">Timeline: ${benefit.timeline}</div>` : ''}
+              ${benefit.eligibility_notes ? `<div style="font-size: 0.875rem; color: var(--color-gray-700);">${benefit.eligibility_notes}</div>` : ''}
+            </div>
+          `;
+        });
+      }
+
+      // Survival Outlook
+      if (economic.survival_outlook) {
+        html += `<h3 class="mb-3 mt-4">Survival Outlook</h3>`;
+        const outlook = economic.survival_outlook;
+        html += `<div class="mb-4">`;
+        if (outlook.without_action) {
+          html += `<div style="padding: 0.75rem; background: var(--color-danger-light); border-radius: var(--radius-md); margin-bottom: 0.5rem;">
+            <strong>Without Action:</strong> ${outlook.without_action}
+          </div>`;
+        }
+        if (outlook.with_action) {
+          html += `<div style="padding: 0.75rem; background: var(--color-warning-light); border-radius: var(--radius-md); margin-bottom: 0.5rem;">
+            <strong>With Action:</strong> ${outlook.with_action}
+          </div>`;
+        }
+        if (outlook.best_case) {
+          html += `<div style="padding: 0.75rem; background: var(--color-success-light); border-radius: var(--radius-md);">
+            <strong>Best Case:</strong> ${outlook.best_case}
+          </div>`;
+        }
+        html += `</div>`;
       }
 
       content.innerHTML = html;
