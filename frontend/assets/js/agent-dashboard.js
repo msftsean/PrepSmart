@@ -174,16 +174,16 @@ async function pollStatus() {
  */
 function updateDashboard(status) {
   // Update overall progress
-  const progress = status.progress || 0;
+  const progress = status.progress_percentage || 0;
   updateOverallProgress(progress, status.status);
 
   // Update time estimate
   updateTimeEstimate(progress);
 
-  // Update individual agent statuses
-  if (status.agent_statuses) {
-    Object.entries(status.agent_statuses).forEach(([agentName, agentStatus]) => {
-      updateAgentCard(agentName, agentStatus);
+  // Update individual agent statuses from agents array
+  if (status.agents && Array.isArray(status.agents)) {
+    status.agents.forEach(agent => {
+      updateAgentCard(agent.agent_name, agent);
     });
   }
 }
@@ -253,15 +253,16 @@ function updateAgentCard(agentName, agentStatus) {
   if (!card) return;
 
   const status = agentStatus.status || 'pending';
-  const message = agentStatus.message || '';
+  const message = agentStatus.current_task_description || agentStatus.message || '';
 
-  // Update card class
-  card.className = `agent-card ${status}`;
+  // Update card class (map 'active' to 'in_progress' for styling)
+  const displayStatus = status === 'active' ? 'in_progress' : status;
+  card.className = `agent-card ${displayStatus}`;
 
   // Update status dot
   const statusDot = card.querySelector('.status-dot');
   if (statusDot) {
-    statusDot.className = `status-dot ${status}`;
+    statusDot.className = `status-dot ${displayStatus}`;
   }
 
   // Update status text
@@ -269,35 +270,36 @@ function updateAgentCard(agentName, agentStatus) {
   if (statusText) {
     const statusLabels = {
       'pending': 'Waiting...',
+      'active': 'Working...',
       'in_progress': 'Working...',
       'completed': 'Complete ✓',
+      'failed': 'Error ✗',
       'error': 'Error ✗',
       'skipped': 'Skipped'
     };
     statusText.textContent = statusLabels[status] || status;
   }
 
-  // Update log if message exists
-  if (message) {
-    let logEl = card.querySelector('.agent-log');
-    if (logEl) {
-      logEl.classList.remove('hidden');
+  // Update description with current task
+  const descriptionEl = card.querySelector('.agent-description');
+  if (descriptionEl && message) {
+    descriptionEl.textContent = message;
+    descriptionEl.style.fontStyle = 'italic';
+    descriptionEl.style.color = '#666';
+  }
 
-      // Append new message
-      const timestamp = new Date().toLocaleTimeString();
-      const logEntry = `[${timestamp}] ${message}\n`;
-
-      // Keep only last 5 log entries
-      const entries = logEl.textContent.split('\n').filter(e => e.trim());
-      if (entries.length >= 5) {
-        entries.shift();
-      }
-      entries.push(logEntry.trim());
-      logEl.textContent = entries.join('\n');
-
-      // Auto-scroll to bottom
-      logEl.scrollTop = logEl.scrollHeight;
+  // Update progress percentage if available
+  if (agentStatus.progress_percentage !== undefined) {
+    let progressEl = card.querySelector('.agent-progress');
+    if (!progressEl) {
+      progressEl = document.createElement('div');
+      progressEl.className = 'agent-progress';
+      progressEl.style.fontSize = '0.85rem';
+      progressEl.style.color = '#888';
+      progressEl.style.marginTop = '0.5rem';
+      card.appendChild(progressEl);
     }
+    progressEl.textContent = `${agentStatus.progress_percentage}% complete`;
   }
 }
 
