@@ -41,9 +41,9 @@ class CrisisProfile(BaseModel):
     housing_type: Literal["apartment", "house", "mobile_home", "other"]
 
     # Budget Constraint
-    budget_tier: Literal[50, 100, 200] = Field(
-        ...,
-        description="Budget in USD for supply preparation"
+    budget_tier: Optional[int] = Field(
+        None,
+        description="Budget in USD for supply preparation (50/100/200 for natural disaster, any value for economic crisis)"
     )
 
     # Economic Crisis Specific Fields (optional)
@@ -77,6 +77,24 @@ class CrisisProfile(BaseModel):
             raise ValueError("At least 1 adult required")
         if v.get('adults', 0) + v.get('children', 0) > 20:
             raise ValueError("Household size cannot exceed 20 people")
+        return v
+
+    @field_validator('budget_tier')
+    @classmethod
+    def validate_budget_tier(cls, v: Optional[int], info) -> Optional[int]:
+        """Validate budget tier based on crisis mode."""
+        # Get crisis_mode from values (if available)
+        crisis_mode = info.data.get('crisis_mode') if hasattr(info, 'data') else None
+
+        if crisis_mode == 'natural_disaster':
+            # For natural disasters, require 50, 100, or 200
+            if v not in [50, 100, 200]:
+                raise ValueError("For natural disasters, budget_tier must be 50, 100, or 200")
+        elif crisis_mode == 'economic_crisis':
+            # For economic crisis, allow any non-negative integer
+            if v is not None and v < 0:
+                raise ValueError("Budget tier cannot be negative")
+
         return v
 
     class Config:
