@@ -137,8 +137,8 @@ class CoordinatorAgent:
         from ..services.claude_client import ClaudeClient
 
         # Create Haiku client for simple agents (cost optimization)
-        # Haiku 4.0 latest: claude-haiku-4-20250514
-        haiku_client = ClaudeClient(model="claude-haiku-4-20250514")
+        # Use Claude 3.5 Haiku (latest available as of Oct 2024)
+        haiku_client = ClaudeClient(model="claude-3-5-haiku-20241022")
 
         # Use Haiku for simple agents, Sonnet for complex reasoning (Financial Advisor)
         agent_map = {
