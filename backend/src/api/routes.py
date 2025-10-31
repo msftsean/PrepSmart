@@ -294,8 +294,8 @@ def register_routes(app: Flask) -> None:
             if not blackboard:
                 return jsonify({"error": "NotFound", "message": "Task not found"}), 404
 
-            # Check if plan is complete
-            if blackboard.status != "completed":
+            # Check if plan is still processing (not complete or failed)
+            if blackboard.status == "processing" or blackboard.status == "initialized":
                 return jsonify({
                     "message": "Plan still processing. Check /status endpoint.",
                     "task_id": task_id,
@@ -304,10 +304,11 @@ def register_routes(app: Flask) -> None:
                     "agents_failed": blackboard.agents_failed
                 }), 202
 
-            # Return complete plan
+            # Return plan (even if failed, return partial results)
+            # This allows users to see what agents DID complete before failure
             return jsonify({
                 "task_id": task_id,
-                "status": "completed",
+                "status": blackboard.status,  # Can be "completed" or "failed"
                 "crisis_profile": blackboard.crisis_profile,
                 "risk_assessment": blackboard.risk_assessment,
                 "supply_plan": blackboard.supply_plan,
