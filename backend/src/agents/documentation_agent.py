@@ -193,7 +193,10 @@ class DocumentationAgent(BaseAgent):
         crisis_type = complete_plan.get('crisis_type', 'Unknown')
 
         # Create output directory if it doesn't exist
-        output_dir = Path("output/pdfs")
+        # Use absolute path to avoid working directory issues
+        import os
+        base_dir = Path(os.getcwd())
+        output_dir = base_dir / "output" / "pdfs"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # PDF filename
