@@ -159,6 +159,9 @@ IMPORTANT: Return valid JSON only. Ensure all strings are properly escaped with 
                 f"{len(economic_plan.get('eligible_benefits', []))} benefits identified"
             )
 
+            # Log comprehensive debug output
+            self.log_agent_output(task_id, economic_plan, agent_emoji)
+
             return blackboard
 
         except Exception as e:

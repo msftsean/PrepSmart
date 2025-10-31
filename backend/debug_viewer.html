@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepSmart Agent Debug Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .summary-card .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .agent-results {
+            margin-top: 30px;
+        }
+
+        .agent-card {
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .agent-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .agent-header:hover {
+            background: #e9ecef;
+        }
+
+        .agent-header.has-data {
+            background: #d4edda;
+        }
+
+        .agent-header.no-data {
+            background: #f8d7da;
+        }
+
+        .agent-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .agent-body {
+            padding: 20px;
+            background: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .agent-body.expanded {
+            max-height: none;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .error-message {
+            padding: 20px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            color: #721c24;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PrepSmart Agent Debug Viewer</h1>
+        <p class="subtitle">Real-time visibility into agent execution and results</p>
+
+        <div class="input-section">
+            <div class="input-group">
+                <input type="text" id="taskIdInput" placeholder="Enter task_id (UUID) or paste URL">
+                <button onclick="loadDebugData()">Load Debug Data</button>
+                <button onclick="autoRefresh()" id="refreshBtn">Auto-Refresh OFF</button>
+            </div>
+            <small style="color: #666;">Example: b7bb6af3-52e7-44e4-944e-3eb21555d0b6 or paste the full URL from your browser</small>
+        </div>
+
+        <div id="content"></div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let currentTaskId = null;
+
+        // Extract task_id from URL on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskId = urlParams.get('task_id');
+            if (taskId) {
+                document.getElementById('taskIdInput').value = taskId;
+                loadDebugData();
+            }
+        });
+
+        function extractTaskId(input) {
+            // If it's a URL, extract task_id from it
+            if (input.includes('http') || input.includes('task_id=')) {
+                const match = input.match(/task_id=([a-f0-9\-]+)/i);
+                if (match) return match[1];
+
+                // Try to extract UUID from path
+                const uuidMatch = input.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+                if (uuidMatch) return uuidMatch[1];
+            }
+
+            // Otherwise assume it's just the task_id
+            return input.trim();
+        }
+
+        async function loadDebugData() {
+            const input = document.getElementById('taskIdInput').value;
+            const taskId = extractTaskId(input);
+
+            if (!taskId) {
+                showError('Please enter a valid task_id');
+                return;
+            }
+
+            currentTaskId = taskId;
+
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading debug data...</div>';
+
+            try {
+                // Determine the API base URL (use current domain/port)
+                const baseUrl = window.location.origin.replace(/:\d+/, ':5001');
+                const response = await fetch(`${baseUrl}/api/crisis/${taskId}/debug`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                renderDebugData(data);
+
+            } catch (error) {
+                showError(`Failed to load debug data: ${error.message}`);
+            }
+        }
+
+        function autoRefresh() {
+            const btn = document.getElementById('refreshBtn');
+
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.textContent = 'Auto-Refresh OFF';
+                btn.style.background = '#667eea';
+            } else {
+                autoRefreshInterval = setInterval(loadDebugData, 3000);
+                btn.textContent = 'Auto-Refresh ON';
+                btn.style.background = '#28a745';
+            }
+        }
+
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `<div class="error-message"><strong>Error:</strong> ${message}</div>`;
+        }
+
+        function renderDebugData(data) {
+            const summary = data.execution_summary;
+            const agents = data.agent_results;
+
+            let statusClass = 'status-processing';
+            if (summary.status === 'completed') statusClass = 'status-completed';
+            if (summary.status === 'failed') statusClass = 'status-failed';
+
+            let html = `
+                <h2>Task: ${data.task_id} <span class="${statusClass} status-badge">${summary.status.toUpperCase()}</span></h2>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <h3>Execution Time</h3>
+                        <div class="value">${summary.total_execution_seconds?.toFixed(1) || 'N/A'}s</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Agents Completed</h3>
+                        <div class="value">${summary.agents_completed.length}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Agents Failed</h3>
+                        <div class="value">${summary.agents_failed.length}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Total Cost</h3>
+                        <div class="value">$${summary.total_cost_estimate?.toFixed(4) || '0.0000'}</div>
+                    </div>
+                </div>
+
+                <div class="agent-results">
+                    <h2>Agent Results</h2>
+            `;
+
+            const agentMap = {
+                'risk_assessment': 'Risk Assessment Agent',
+                'supply_plan': 'Supply Planning Agent',
+                'economic_plan': 'Financial Advisor Agent',
+                'resource_locations': 'Resource Locator Agent',
+                'video_recommendations': 'Video Curator Agent',
+                'complete_plan': 'Documentation Agent'
+            };
+
+            for (const [key, title] of Object.entries(agentMap)) {
+                const result = agents[key];
+                const hasData = result !== null && result !== undefined;
+                const headerClass = hasData ? 'has-data' : 'no-data';
+                const dataPreview = hasData ? '✓ Data available' : '✗ No data';
+
+                html += `
+                    <div class="agent-card">
+                        <div class="agent-header ${headerClass}" onclick="toggleAgent('${key}')">
+                            <span class="agent-title">${title}</span>
+                            <span>${dataPreview}</span>
+                        </div>
+                        <div class="agent-body" id="agent-${key}">
+                            ${hasData ? `<pre>${JSON.stringify(result, null, 2)}</pre>` : '<p>No data available for this agent</p>'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            if (summary.errors && summary.errors.length > 0) {
+                html += '<h2>Errors</h2>';
+                summary.errors.forEach(error => {
+                    html += `<div class="error-message"><strong>${error.agent_name || 'System'}:</strong> ${error.error_message || error.message}</div>`;
+                });
+            }
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function toggleAgent(agentKey) {
+            const body = document.getElementById(`agent-${agentKey}`);
+            body.classList.toggle('expanded');
+        }
+    </script>
+</body>
+</html>

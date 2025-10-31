@@ -251,6 +251,9 @@ class ResourceLocatorAgent(BaseAgent):
                 f"{len(resource_locations)} resources found"
             )
 
+            # Log comprehensive debug output
+            self.log_agent_output(task_id, resource_locations, agent_emoji)
+
             return blackboard
 
         except Exception as e:

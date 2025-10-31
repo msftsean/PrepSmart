@@ -122,6 +122,9 @@ class SupplyPlanningAgent(BaseAgent):
 
             logger.info(f"{agent_emoji} {agent_label} completed: {supply_plan.get('total_items', 0)} items")
 
+            # Log comprehensive debug output
+            self.log_agent_output(task_id, supply_plan, agent_emoji)
+
             return blackboard
 
         except Exception as e:

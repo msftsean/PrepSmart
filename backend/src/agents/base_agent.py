@@ -232,3 +232,30 @@ class BaseAgent(ABC):
 
         if missing:
             raise ValueError(f"Missing required fields: {', '.join(missing)}")
+
+    def log_agent_output(self, task_id: str, result_data: Dict[str, Any], agent_emoji: str) -> None:
+        """
+        Log comprehensive agent output for debugging.
+
+        This method outputs detailed information about what the agent produced,
+        making it easy to debug when results aren't showing up in the UI.
+
+        Args:
+            task_id: Task ID
+            result_data: The data produced by this agent
+            agent_emoji: Emoji for visual identification
+        """
+        import json
+
+        logger.info(f"\n{'='*80}")
+        logger.info(f"{agent_emoji} {self.agent_class_name} COMPLETE OUTPUT (task_id={task_id})")
+        logger.info(f"{'='*80}")
+
+        # Pretty print the result data
+        try:
+            logger.info(f"Result Data:\n{json.dumps(result_data, indent=2)}")
+        except Exception as e:
+            logger.warning(f"Could not JSON-serialize result: {e}")
+            logger.info(f"Result Data:\n{result_data}")
+
+        logger.info(f"{'='*80}\n")

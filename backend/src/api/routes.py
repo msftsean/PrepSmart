@@ -34,6 +34,19 @@ def register_routes(app: Flask) -> None:
         app: Flask application
     """
 
+    @app.route('/debug-viewer', methods=['GET'])
+    def debug_viewer():
+        """Serve the debug viewer HTML page."""
+        try:
+            debug_html_path = Path(__file__).parent.parent.parent / 'debug_viewer.html'
+            if debug_html_path.exists():
+                return send_file(str(debug_html_path), mimetype='text/html')
+            else:
+                return f"Debug viewer not found at {debug_html_path}", 404
+        except Exception as e:
+            logger.error(f"Error serving debug viewer: {e}")
+            return f"Error: {e}", 500
+
     @app.route('/api/health', methods=['GET'])
     def health_check():
         """Health check endpoint."""
@@ -352,5 +365,77 @@ def register_routes(app: Flask) -> None:
         except Exception as e:
             logger.error(f"Error downloading PDF for {task_id}: {e}")
             return jsonify({"error": "InternalError", "message": "Failed to download PDF"}), 500
+
+    @app.route('/api/crisis/<task_id>/debug', methods=['GET'])
+    def debug_agent_results(task_id: str):
+        """
+        Debug endpoint: View all agent results and blackboard state.
+
+        This endpoint provides complete visibility into what each agent produced,
+        useful for debugging when results aren't showing up in the UI.
+        """
+        try:
+            # Get blackboard from database
+            blackboard = blackboard_service.get_blackboard(task_id)
+
+            if not blackboard:
+                return jsonify({"error": "NotFound", "message": "Task not found"}), 404
+
+            # Get agent logs for detailed progress
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM agent_logs
+                WHERE task_id = ?
+                ORDER BY started_at
+            """, (task_id,))
+            logs = cursor.fetchall()
+            conn.close()
+
+            # Convert logs to dict
+            agent_logs = []
+            for log in logs:
+                agent_logs.append({
+                    "agent_name": log['agent_name'],
+                    "agent_type": log['agent_type'],
+                    "status": log['status'],
+                    "current_task_description": log['current_task_description'],
+                    "progress_percentage": log['progress_percentage'],
+                    "started_at": log['started_at'],
+                    "completed_at": log['completed_at'],
+                    "error_message": log['error_message']
+                })
+
+            # Return full blackboard state with clear sections
+            return jsonify({
+                "task_id": task_id,
+                "status": blackboard.status,
+                "execution_summary": {
+                    "status": blackboard.status,
+                    "execution_start": blackboard.execution_start.isoformat() if blackboard.execution_start else None,
+                    "execution_end": blackboard.execution_end.isoformat() if blackboard.execution_end else None,
+                    "total_execution_seconds": blackboard.total_execution_seconds,
+                    "total_tokens_used": blackboard.total_tokens_used,
+                    "total_cost_estimate": blackboard.total_cost_estimate,
+                    "agents_completed": blackboard.agents_completed,
+                    "agents_failed": blackboard.agents_failed,
+                    "errors": blackboard.errors
+                },
+                "agent_logs": agent_logs,
+                "agent_results": {
+                    "risk_assessment": blackboard.risk_assessment,
+                    "supply_plan": blackboard.supply_plan,
+                    "economic_plan": blackboard.economic_plan,
+                    "resource_locations": blackboard.resource_locations,
+                    "video_recommendations": blackboard.video_recommendations,
+                    "complete_plan": blackboard.complete_plan
+                },
+                "crisis_profile": blackboard.crisis_profile,
+                "pdf_path": blackboard.pdf_path
+            })
+
+        except Exception as e:
+            logger.error(f"Error getting debug info for {task_id}: {e}", exc_info=True)
+            return jsonify({"error": "InternalError", "message": str(e)}), 500
 
     logger.info("API routes registered")

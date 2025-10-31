@@ -269,6 +269,9 @@ class VideoCuratorAgent(BaseAgent):
                 f"{len(video_recommendations)} videos curated"
             )
 
+            # Log comprehensive debug output
+            self.log_agent_output(task_id, video_recommendations, agent_emoji)
+
             return blackboard
 
         except Exception as e:

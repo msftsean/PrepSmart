@@ -25,6 +25,49 @@
       margin: 2rem 0;
     }
 
+    .message-ticker {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-size: 1.125rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-ticker-text {
+      animation: messageSlide 0.5s ease-in;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
     .progress-info {
       display: flex;
       justify-content: space-between;
@@ -183,6 +226,13 @@
   <!-- Main Content -->
   <main class="section">
     <div class="container">
+      <!-- Uplifting Message Ticker -->
+      <div class="message-ticker">
+        <div class="message-ticker-text" id="uplifting-message">
+          You're taking an important step toward preparedness. We're here to help. ✨
+        </div>
+      </div>
+
       <!-- Overall Progress -->
       <div class="overall-progress">
         <div class="card">
@@ -233,5 +283,52 @@
   <!-- Scripts -->
   <script src="../assets/js/api-client.js"></script>
   <script src="../assets/js/agent-dashboard.js"></script>
+
+  <!-- Uplifting Message Ticker Script -->
+  <script>
+    (function() {
+      const messages = [
+        "You're taking an important step toward preparedness. We're here to help. ✨",
+        "Every crisis has a solution. We're finding yours right now. 💪",
+        "Preparation is power. You're getting stronger with each moment. 🌟",
+        "You're not alone. Millions have overcome challenges like yours. 🤝",
+        "Small steps today create big safety tomorrow. You've got this! 🎯",
+        "Hope is built on preparation. We're building yours now. 🏗️",
+        "Your resilience inspires us. Let's create your plan together. 💙",
+        "Knowledge is the first step to safety. You're almost there! 📚",
+        "Every second counts, and you're using yours wisely. ⏱️",
+        "Courage isn't the absence of fear—it's taking action despite it. 🦁",
+        "Your future self will thank you for this moment of preparation. 🙏",
+        "We believe in your ability to get through this. 🌈",
+        "Preparedness turns worry into confidence. Transformation in progress! ⚡",
+        "You're creating a safety net for yourself and your loved ones. 👨‍👩‍👧‍👦",
+        "Crisis planning = Crisis prevention. Smart move! 🧠",
+        "Your plan is being customized just for you. Almost ready! 🎨",
+        "Strength doesn't come from what you can do—it comes from preparing. 💎",
+        "This is your moment. This is your plan. This is your power. 🔥"
+      ];
+
+      let currentIndex = 0;
+      const messageElement = document.getElementById('uplifting-message');
+
+      function rotateMessage() {
+        // Fade out current message
+        messageElement.style.animation = 'none';
+
+        // Wait a bit, then change message and fade in
+        setTimeout(() => {
+          currentIndex = (currentIndex + 1) % messages.length;
+          messageElement.textContent = messages[currentIndex];
+          messageElement.style.animation = 'messageSlide 0.5s ease-in';
+        }, 100);
+      }
+
+      // Rotate messages every 5 seconds
+      setInterval(rotateMessage, 5000);
+
+      // Optional: Also rotate when progress changes significantly
+      window.addEventListener('progressUpdate', rotateMessage);
+    })();
+  </script>
 </body>
 </html>

@@ -72,20 +72,21 @@ PrepSmart uses **7 specialized AI agents** working together to create personaliz
 
 **Backend**:
 - Python 3.11+ with Flask
-- AutoGen (Microsoft Agent Framework) for multi-agent orchestration
-- Claude 3.5 Sonnet (Anthropic) for AI intelligence
+- **Blackboard Pattern** for multi-agent coordination (custom implementation)
+- Claude 3.5 Sonnet API for complex reasoning (Financial Advisor)
+- Claude 3.5 Haiku API for simple agents (cost optimization)
 - ReportLab for PDF generation
-- SQLite (MVP) → PostgreSQL (production)
-- uszipcode for location validation
+- SQLite for data persistence
+- Asyncio for parallel agent execution
 
 **Frontend**:
 - Vanilla HTML/CSS/JavaScript (mobile-first)
+- Real-time agent status polling
 - Service Worker for offline support
-- No framework overhead for fast load times
 
 **Deployment**:
-- Azure Container Apps (primary)
-- Railway/Render (fallback)
+- Azure Container Apps
+- Docker containerization
 
 ### Project Structure
 
@@ -186,7 +187,106 @@ For detailed setup instructions, see [quickstart.md](.specify/specs/001-prepsmar
 
 ---
 
-## 📋 Development Roadmap
+## 🔍 Debugging & Development Tools
+
+PrepSmart includes powerful debugging tools to help you understand what each agent is producing:
+
+### Debug Viewer (Web UI)
+
+Visit **http://localhost:5000/debug-viewer** to access the interactive debug dashboard.
+
+Features:
+- Real-time agent execution status
+- Complete JSON output from each agent
+- Execution time and cost tracking
+- Error messages and stack traces
+- Auto-refresh mode for live monitoring
+
+Usage:
+```bash
+# Start the backend
+cd backend && python -m src.api.app
+
+# Open debug viewer
+open http://localhost:5000/debug-viewer
+
+# Enter a task_id from your crisis plan
+# Example: 80ac4e0a-0363-4d9d-b518-49c1d79c6e92
+```
+
+### Debug API Endpoint
+
+For programmatic access to agent results:
+
+```bash
+# Get complete agent output for a task
+curl http://localhost:5000/api/crisis/{task_id}/debug | python -m json.tool
+
+# Example:
+curl http://localhost:5000/api/crisis/80ac4e0a-0363-4d9d-b518-49c1d79c6e92/debug \
+  | python -m json.tool > debug_output.json
+```
+
+Response includes:
+- `execution_summary`: Status, timing, costs, errors
+- `agent_results`: Complete output from each agent (risk_assessment, supply_plan, economic_plan, etc.)
+- `agent_logs`: Activity timeline for each agent
+- `crisis_profile`: Original user input
+
+### Console Logging
+
+All agents now log their complete output to the console in structured format:
+
+```
+================================================================================
+💼 FinancialAdvisorAgent COMPLETE OUTPUT (task_id=abc123)
+================================================================================
+Result Data:
+{
+  "financial_summary": { ... },
+  "daily_actions": [ ... ],
+  "eligible_benefits": [ ... ],
+  ...
+}
+================================================================================
+```
+
+### Database Inspection
+
+```bash
+# View all tasks
+sqlite3 backend/prepsmart.db "SELECT task_id, status, agents_completed_json FROM blackboards LIMIT 10;"
+
+# Check specific task
+sqlite3 backend/prepsmart.db "SELECT * FROM blackboards WHERE task_id = 'YOUR_TASK_ID';"
+
+# View agent logs
+sqlite3 backend/prepsmart.db "SELECT * FROM agent_logs WHERE task_id = 'YOUR_TASK_ID';"
+```
+
+### Common Debugging Scenarios
+
+**Problem: No results showing in UI**
+1. Check `/api/crisis/{task_id}/debug` endpoint
+2. Look for null values in `agent_results`
+3. Check `agents_completed` vs `agents_failed` lists
+4. Review backend console logs for errors
+
+**Problem: Agents stuck in "processing"**
+1. Check console logs for timeout errors
+2. Verify Claude API key is valid
+3. Check if specific agent is failing silently
+4. Review `errors` array in debug output
+
+**Problem: Supply plan is empty**
+1. Verify SupplyPlanningAgent completed (check `agents_completed`)
+2. Check console logs for JSON parsing errors
+3. Review Claude API response in logs
+4. Verify budget_tier validation passed
+
+---
+
+## 📋 Development Status
 
 ### Phase 1: Setup ✅ COMPLETE
 - [x] Project structure
@@ -197,31 +297,46 @@ For detailed setup instructions, see [quickstart.md](.specify/specs/001-prepsmar
 - [x] API contracts (OpenAPI 3.0)
 - [x] Task breakdown (110 tasks)
 
-### Phase 2: Foundation (Day 1) - READY TO START
-- [ ] Database schema
-- [ ] Flask app initialization
-- [ ] Claude API client
-- [ ] Base agent interface
-- [ ] Static data files
+### Phase 2: Foundation ✅ COMPLETE
+- [x] Database schema (SQLite with 3 tables)
+- [x] Flask app initialization
+- [x] Claude API client (Sonnet + Haiku)
+- [x] Base agent interface
+- [x] Static data files (videos, resources)
 
-### Phase 3: Natural Disaster MVP (Days 1-2)
-- [ ] 7 AI agents implementation
-- [ ] Agent orchestration
-- [ ] PDF generation
-- [ ] Frontend (questionnaire → agent dashboard → results)
-- [ ] End-to-end testing
+### Phase 3: Multi-Agent System ✅ COMPLETE
+- [x] Risk Assessment Agent
+- [x] Supply Planning Agent (natural disaster + economic)
+- [x] Financial Advisor Agent (economic crisis)
+- [x] Resource Locator Agent
+- [x] Video Curator Agent
+- [x] Documentation Agent (PDF generation)
+- [x] Coordinator Agent (blackboard pattern orchestration)
+- [x] Parallel agent execution with asyncio
 
-### Phase 4: Economic Crisis (Day 3)
-- [ ] Financial Advisor Agent
-- [ ] Economic plan frontend
-- [ ] Hardship letter templates
-- [ ] Integration testing
+### Phase 4: Frontend & Integration ✅ COMPLETE
+- [x] Crisis selection page
+- [x] Dynamic questionnaire (mode-specific)
+- [x] Real-time agent dashboard
+- [x] Results display page
+- [x] PDF download
+- [x] End-to-end testing
 
-### Phase 5: Polish & Deploy (Day 4)
-- [ ] Mobile responsiveness
-- [ ] Offline support
-- [ ] Azure deployment
-- [ ] Hackathon demo prep
+### Phase 5: Debugging & Polish 🚧 IN PROGRESS
+- [x] Debug viewer web UI
+- [x] Debug API endpoint
+- [x] Comprehensive agent logging
+- [x] Documentation updates
+- [ ] Mobile responsiveness audit
+- [ ] Performance optimization
+- [ ] Error handling improvements
+
+### Phase 6: Deployment 📅 NEXT
+- [ ] Azure Container Apps deployment
+- [ ] Environment variable configuration
+- [ ] Production database setup
+- [ ] Monitoring and logging
+- [ ] Hackathon demo preparation
 
 ---
 
@@ -373,4 +488,6 @@ MIT License - See LICENSE file for details
 
 **Built with ❤️ and AI to help people survive crises**
 
-**Timeline**: 4 days | **Status**: Planning Complete ✅ | **Next**: Implementation Phase 1 🚀
+**Timeline**: 4 days | **Status**: MVP Complete ✅ | **Next**: Deployment & Demo Prep 🚀
+
+**Current Build**: Multi-agent system operational | **Agents**: 6/6 working | **Debug Tools**: Active

@@ -95,6 +95,9 @@ class RiskAssessmentAgent(BaseAgent):
                 f"tokens={self.tokens_used}, cost=${self.cost:.4f}"
             )
 
+            # Log comprehensive debug output
+            self.log_agent_output(task_id, risk_assessment, agent_emoji)
+
             return blackboard
 
         except Exception as e:

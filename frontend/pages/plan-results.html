@@ -507,28 +507,52 @@
 
       let html = '';
 
-      if (supply.budget_tier) {
-        html += `<p class="mb-3"><strong>Budget Tier:</strong> $${supply.budget_tier}</p>`;
+      if (supply.budget_constraint || supply.budget_tier) {
+        html += `<p class="mb-3"><strong>Budget:</strong> $${supply.budget_constraint || supply.budget_tier}</p>`;
       }
 
+      // Check for items in different possible locations
+      let items = [];
+
+      // Try direct items array
       if (supply.items && supply.items.length > 0) {
-        html += `<h3 class="mb-3">Supply Checklist</h3>`;
+        items = supply.items;
+      }
+      // Try tiers structure (economic crisis mode)
+      else if (supply.tiers && supply.tiers.critical && supply.tiers.critical.items) {
+        items = supply.tiers.critical.items;
+      }
+      // Try recommended_tier
+      else if (supply.tiers && supply.recommended_tier && supply.tiers[supply.recommended_tier]) {
+        items = supply.tiers[supply.recommended_tier].items || [];
+      }
+
+      if (items.length > 0) {
+        html += `<h3 class="mb-3">Supply Checklist (${items.length} items)</h3>`;
         html += `<div class="supply-list">`;
 
-        supply.items.forEach((item, index) => {
+        items.forEach((item, index) => {
+          const itemName = item.item_name || item.name || 'Item';
+          const quantity = item.quantity || 1;
+          const unit = item.unit || '';
+          const price = item.estimated_cost || item.estimated_price || 0;
+
           html += `
             <div class="supply-item">
               <input type="checkbox" id="item-${index}">
               <label for="item-${index}" class="supply-details">
-                <div class="supply-name">${item.item_name}</div>
-                <div class="supply-quantity">Quantity: ${item.quantity} ${item.unit || ''}</div>
-                ${item.estimated_cost ? `<div class="supply-quantity">~$${item.estimated_cost.toFixed(2)}</div>` : ''}
+                <div class="supply-name">${itemName}</div>
+                <div class="supply-quantity">Quantity: ${quantity} ${unit}</div>
+                ${price > 0 ? `<div class="supply-quantity">~$${price.toFixed(2)}</div>` : ''}
+                ${item.rationale ? `<div class="supply-quantity" style="font-size: 0.875rem; color: var(--color-gray-600);">${item.rationale}</div>` : ''}
               </label>
             </div>
           `;
         });
 
         html += `</div>`;
+      } else {
+        html += `<p class="text-gray">No supply items available.</p>`;
       }
 
       content.innerHTML = html;
