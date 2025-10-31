@@ -456,13 +456,23 @@
       }
 
       // Render resources
-      if (data.resource_locations) {
+      if (data.resource_locations && data.resource_locations.length > 0) {
         renderResources(data.resource_locations);
+        document.getElementById('resources-section').classList.remove('hidden');
+      } else {
+        // Show section with "no resources" message
+        renderResources([]);
+        document.getElementById('resources-section').classList.remove('hidden');
       }
 
       // Render videos
-      if (data.video_recommendations) {
+      if (data.video_recommendations && data.video_recommendations.length > 0) {
         renderVideos(data.video_recommendations);
+        document.getElementById('videos-section').classList.remove('hidden');
+      } else {
+        // Show section with "no videos" message
+        renderVideos([]);
+        document.getElementById('videos-section').classList.remove('hidden');
       }
     }
 
