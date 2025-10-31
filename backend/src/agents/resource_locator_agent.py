@@ -589,17 +589,32 @@ class ResourceLocatorAgent(BaseAgent):
         Returns:
             List of resources sorted by distance
         """
+        # Check if this is a NYC borough (special handling)
+        nyc_boroughs = ['brooklyn', 'manhattan', 'queens', 'bronx', 'staten island']
+        is_nyc_borough = city.lower() in nyc_boroughs or (
+            state == 'NY' and city.lower() in ['new york', 'nyc']
+        )
+
         # Filter by resource type
         filtered = [
             r for r in self.static_resources
             if r.get('resource_type') in resource_types
         ]
 
-        # Filter by state (same state or nearby states)
-        filtered = [
-            r for r in filtered
-            if r.get('state') == state or self._is_nearby_state(state, r.get('state'))
-        ]
+        # For NYC boroughs, include all NYC resources (ignore state filtering)
+        if is_nyc_borough:
+            logger.info(f"{city} is an NYC borough - including all NYC resources")
+            # Keep only NY state resources for NYC
+            filtered = [
+                r for r in filtered
+                if r.get('state') == 'NY'
+            ]
+        else:
+            # Filter by state (same state or nearby states)
+            filtered = [
+                r for r in filtered
+                if r.get('state') == state or self._is_nearby_state(state, r.get('state'))
+            ]
 
         # Calculate distances
         if latitude is not None and longitude is not None:
@@ -621,10 +636,16 @@ class ResourceLocatorAgent(BaseAgent):
             ]
 
             # If we got results within distance, use them; otherwise use all in-state resources
-            if len(filtered_with_distance) > 0:
+            # For NYC boroughs, always include all NYC resources regardless of distance
+            if len(filtered_with_distance) > 0 and not is_nyc_borough:
                 filtered = filtered_with_distance
                 # Sort by distance
                 filtered.sort(key=lambda r: r.get('distance_miles', float('inf')))
+            elif is_nyc_borough:
+                # For NYC, return all NYC resources regardless of distance
+                logger.info(f"NYC borough: returning all {len(filtered)} NYC resources")
+                # Sort by distance if available
+                filtered.sort(key=lambda r: r.get('distance_miles') if r.get('distance_miles') is not None else float('inf'))
             else:
                 # No resources within max_distance, so return in-state resources without distance filtering
                 logger.warning(
