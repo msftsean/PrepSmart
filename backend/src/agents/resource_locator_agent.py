@@ -614,14 +614,26 @@ class ResourceLocatorAgent(BaseAgent):
                 else:
                     resource['distance_miles'] = None
 
-            # Filter by max distance
-            filtered = [
+            # Filter by max distance (but keep resources with distance even if beyond max)
+            filtered_with_distance = [
                 r for r in filtered
                 if r.get('distance_miles') is not None and r['distance_miles'] <= max_distance_miles
             ]
 
-            # Sort by distance
-            filtered.sort(key=lambda r: r.get('distance_miles', float('inf')))
+            # If we got results within distance, use them; otherwise use all in-state resources
+            if len(filtered_with_distance) > 0:
+                filtered = filtered_with_distance
+                # Sort by distance
+                filtered.sort(key=lambda r: r.get('distance_miles', float('inf')))
+            else:
+                # No resources within max_distance, so return in-state resources without distance filtering
+                logger.warning(
+                    f"No resources within {max_distance_miles} miles. "
+                    f"Returning {len(filtered)} in-state resources."
+                )
+        else:
+            # No coordinates provided, return in-state resources
+            logger.info(f"No coordinates provided. Returning {len(filtered)} in-state resources.")
 
         # Fallback to NYC resources if no results found
         if len(filtered) == 0:

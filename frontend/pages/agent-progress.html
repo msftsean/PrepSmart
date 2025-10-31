@@ -28,33 +28,35 @@
     .message-ticker {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 1rem 1.5rem;
+      padding: 1.5rem 2rem;
       border-radius: var(--radius-md);
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       text-align: center;
-      font-size: 1.125rem;
-      font-weight: 500;
-      box-shadow: var(--shadow-sm);
-      min-height: 60px;
-      display: flex;
+      font-size: 1.25rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      min-height: 70px;
+      display: flex !important;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.5s ease-in;
+      animation: pulseGlow 2s infinite;
+      border: 2px solid rgba(255, 255, 255, 0.3);
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      50% {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
       }
     }
 
     .message-ticker-text {
-      animation: messageSlide 0.5s ease-in;
+      animation: messageSlide 0.6s ease-in-out;
+      line-height: 1.6;
+      display: block;
+      width: 100%;
     }
 
     @keyframes messageSlide {
@@ -286,7 +288,10 @@
 
   <!-- Uplifting Message Ticker Script -->
   <script>
-    (function() {
+    // Initialize message ticker immediately when DOM loads
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🎯 Initializing uplifting message ticker...');
+
       const messages = [
         "You're taking an important step toward preparedness. We're here to help. ✨",
         "Every crisis has a solution. We're finding yours right now. 💪",
@@ -311,24 +316,37 @@
       let currentIndex = 0;
       const messageElement = document.getElementById('uplifting-message');
 
+      if (!messageElement) {
+        console.error('❌ Message ticker element not found!');
+        return;
+      }
+
+      console.log('✅ Message ticker element found, starting rotation...');
+
       function rotateMessage() {
+        if (!messageElement) return;
+
         // Fade out current message
         messageElement.style.animation = 'none';
+        messageElement.style.opacity = '0';
 
         // Wait a bit, then change message and fade in
         setTimeout(() => {
           currentIndex = (currentIndex + 1) % messages.length;
           messageElement.textContent = messages[currentIndex];
-          messageElement.style.animation = 'messageSlide 0.5s ease-in';
-        }, 100);
+          messageElement.style.animation = 'messageSlide 0.6s ease-in-out';
+          messageElement.style.opacity = '1';
+          console.log(`💬 Message ${currentIndex + 1}/${messages.length}: ${messages[currentIndex].substring(0, 30)}...`);
+        }, 300);
       }
 
-      // Rotate messages every 5 seconds
-      setInterval(rotateMessage, 5000);
+      // Rotate messages every 4 seconds (faster rotation)
+      setInterval(rotateMessage, 4000);
+      console.log('🔄 Message rotation started (every 4 seconds)');
 
       // Optional: Also rotate when progress changes significantly
       window.addEventListener('progressUpdate', rotateMessage);
-    })();
+    });
   </script>
 </body>
 </html>
