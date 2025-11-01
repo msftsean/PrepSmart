@@ -16,8 +16,10 @@ Azure Cloud Shell is the easiest way to deploy as it's already authenticated.
 
 3. **Set your Claude API key**:
    ```bash
-   export CLAUDE_API_KEY='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'
+   export CLAUDE_API_KEY='your-claude-api-key-here'
    ```
+
+   > Get your API key from https://console.anthropic.com/
 
 4. **Run the deployment script**:
    ```bash

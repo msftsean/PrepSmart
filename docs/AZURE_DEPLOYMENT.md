@@ -22,7 +22,7 @@ The easiest way to deploy is using our automated script:
 
 ```bash
 # 1. Set your Claude API key
-export CLAUDE_API_KEY='sk-ant-api03-your-key-here'
+export CLAUDE_API_KEY='your-claude-api-key-here'
 
 # 2. Login to Azure
 az login

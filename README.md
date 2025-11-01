@@ -105,45 +105,166 @@ graph TD
 
 ### Prerequisites
 
+Before you begin, make sure you have:
+
+- **Python 3.11+** - [Download here](https://www.python.org/downloads/)
+- **Git** - [Download here](https://git-scm.com/downloads)
+- **Claude API Key** - [Get yours free from Anthropic](https://console.anthropic.com/)
+  - Sign up for an Anthropic account
+  - Navigate to API Keys section
+  - Generate a new API key (starts with `sk-ant-api03-`)
+  - **Important**: Keep this key secret!
+
+**Optional**:
+- **Docker** - For containerized deployment
+- **Azure Account** - For cloud deployment
+
+---
+
+## ⚙️ Setup Instructions
+
+### Step 1: Clone the Repository
+
 ```bash
-# Required
-- Python 3.11+
-- Claude API Key (get from https://console.anthropic.com/)
-- Docker (optional, for containerization)
+git clone https://github.com/msftsean/prepsmart.git
+cd prepsmart
 ```
 
-### Local Development (2 minutes)
+### Step 2: Backend Setup
 
 ```bash
-# 1. Clone and navigate
-git clone https://github.com/msftsean/prepsmart
-cd prepsmart
-
-# 2. Set up backend
+# Navigate to backend directory
 cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
 
-# 3. Configure environment
-cat > .env << EOF
-CLAUDE_API_KEY=your-api-key-here
+# Create Python virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Step 3: Configure Environment Variables
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Open .env in your text editor and fill in:
+# 1. Your Claude API key (from https://console.anthropic.com/)
+# 2. Generate a Flask secret key with:
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+**Your `.env` file should look like this:**
+
+```env
+# REQUIRED
+CLAUDE_API_KEY=sk-ant-api03-YOUR-ACTUAL-KEY-HERE
+
+# REQUIRED - Paste the output from the secrets command above
+FLASK_SECRET_KEY=your-generated-secret-key-here
+
+# These can stay as defaults
 FLASK_ENV=development
 FLASK_DEBUG=True
 DATABASE_URL=sqlite:///prepsmart.db
-EOF
+AGENT_TIMEOUT=30
+MAX_CONCURRENT_TASKS=10
+LOG_LEVEL=INFO
+ALLOWED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+```
 
-# 4. Start backend (Terminal 1)
+### Step 4: Initialize Database
+
+```bash
+# The database will be created automatically on first run
+# You can verify it works by starting the backend:
 python -m src.api.app
+```
 
-# 5. Start frontend (Terminal 2)
-cd ../frontend
+You should see:
+```
+ * Running on http://127.0.0.1:5000
+ * Serving Flask app 'src.api.app'
+```
+
+### Step 5: Start the Frontend
+
+Open a **new terminal** (keep backend running):
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Start simple HTTP server
 python -m http.server 8000
 ```
 
-**Open**: `http://localhost:8000`
+### Step 6: Open the Application
 
-📘 **Detailed Setup**: See [docs/QUICK_START.md](docs/QUICK_START.md)
+Open your browser and navigate to:
+
+**🌐 http://localhost:8000**
+
+You should see the PrepSmart homepage!
+
+---
+
+## 🧪 Verify Installation
+
+Test that everything works:
+
+1. **Check Backend Health**:
+   ```bash
+   curl http://localhost:5000/api/health
+   ```
+   Should return: `{"status": "healthy"}`
+
+2. **Test Complete Flow**:
+   - Go to http://localhost:8000
+   - Click "Get Started"
+   - Select "Economic Crisis"
+   - Fill out the questionnaire
+   - Watch agents work in real-time
+   - Download your PDF plan
+
+3. **Run Tests** (optional):
+   ```bash
+   # Install test dependencies
+   npm install
+
+   # Run Playwright tests
+   npx playwright test
+   ```
+
+---
+
+## 🔧 Troubleshooting
+
+### "No module named src.api.app"
+- Make sure you're in the `backend/` directory
+- Verify virtual environment is activated: `which python` should show venv path
+
+### "Invalid API Key"
+- Check your `.env` file has the correct API key
+- Verify the key starts with `sk-ant-api03-`
+- Test the key at https://console.anthropic.com/
+
+### "Port already in use"
+- Backend (5000): Check if another Flask app is running
+- Frontend (8000): Use a different port: `python -m http.server 8001`
+
+### Database Errors
+- Delete `backend/prepsmart.db` and restart backend
+- The database will be recreated automatically
+
+📘 **More Help**: See [docs/QUICK_START.md](docs/QUICK_START.md) and [docs/DEBUGGING.md](docs/DEBUGGING.md)
 
 ---
 
