@@ -204,20 +204,41 @@ python -m http.server 8000
 
 ```
 prepsmart/
-├── 📂 backend/
+├── 📂 backend/                 # Python backend
 │   ├── 🤖 src/agents/          # 6 AI agents
-│   ├── 🌐 src/api/             # Flask routes
-│   ├── 📊 src/models/          # Data schemas
-│   ├── 🔧 src/services/        # Claude client, blackboard
+│   ├── 🌐 src/api/             # Flask routes & database
+│   ├── 📊 src/models/          # Data schemas (blackboard, crisis profile)
+│   ├── 🔧 src/services/        # Claude client, blackboard, location
+│   ├── 🛠️ src/utils/           # Config, logger, validators
 │   ├── 📦 src/data/            # Static datasets
-│   └── 🧪 tests/               # Unit + integration tests
-├── 📱 frontend/
+│   ├── 🧪 tests/               # Unit + integration tests
+│   ├── 📄 Dockerfile           # Backend container config
+│   └── 📋 requirements.txt     # Python dependencies
+├── 📱 frontend/                # Static frontend
 │   ├── 🏠 index.html           # Landing page
 │   ├── 📄 pages/               # Crisis select, questionnaire, results
-│   └── 🎨 assets/              # CSS, JS, images
-├── 📚 docs/                    # Documentation
-├── 🚀 deployment/              # Azure configs
-└── 📋 .specify/                # Spec-driven development artifacts
+│   ├── 🎨 assets/              # CSS, JS, images
+│   ├── 📄 Dockerfile           # Frontend container config
+│   └── 🌐 nginx.conf           # Web server config
+├── 📚 docs/                    # All documentation
+│   ├── 🚀 QUICK_START.md       # Setup guide
+│   ├── 🐛 DEBUGGING.md         # Debug tools & troubleshooting
+│   ├── 🌐 PRODUCTION_URLS.md   # Live deployment info
+│   ├── 📋 SUBMISSION_READY.md  # Hackathon checklist
+│   ├── 🔍 ROOT_CAUSE_ANALYSIS.md # Bug fixes deep dive
+│   └── ✨ LATEST_UPDATES.md    # Recent changes
+├── 🧪 tests/                   # Test files
+│   ├── 📂 e2e/                 # Playwright E2E tests (TypeScript)
+│   └── 🎯 test-*.spec.js       # Individual test scenarios
+├── 📸 screenshots/             # UI screenshots for documentation
+├── 🚀 scripts/                 # Deployment & setup scripts
+│   ├── deploy-azure.sh         # Azure deployment automation
+│   └── setup.sh                # Local environment setup
+├── 📋 .specify/                # Spec-driven development artifacts
+│   ├── 📝 specs/001-*/         # Feature specs, plans, tasks
+│   ├── 🧠 memory/              # Constitution & principles
+│   └── 🛠️ scripts/             # Feature creation helpers
+└── 🐳 deployment/              # Azure configuration (legacy)
 ```
 
 ---
