@@ -1,0 +1,53 @@
+# Pre-commit hooks for PrepSmart
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Detect secrets and credentials
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package.lock.json
+
+  # Check for common security issues
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
+      - id: check-case-conflict
+
+  # Python security
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ['-c', '.bandit']
+        files: ^backend/.*\.py$
+
+  # Prevent committing .env files
+  - repo: local
+    hooks:
+      - id: check-env-files
+        name: Check for .env files
+        entry: bash -c 'if git diff --cached --name-only | grep -E "\.env$|\.env\..*$" | grep -v ".env.example"; then echo "ERROR: Attempted to commit .env file!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+  # Check for API keys in code
+  - repo: local
+    hooks:
+      - id: check-api-keys
+        name: Check for API keys
+        entry: bash -c 'if git diff --cached | grep -E "sk-ant-api03-[a-zA-Z0-9]{90,}"; then echo "ERROR: Found API key in commit!"; exit 1; fi'
+        language: system
+        pass_filenames: false

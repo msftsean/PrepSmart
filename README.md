@@ -531,6 +531,66 @@ az containerapp update --name prepsmart-frontend --resource-group $RESOURCE_GROU
 
 ---
 
+## 🔒 Security
+
+PrepSmart takes security seriously. We've implemented multiple layers of protection:
+
+### 🛡️ Security Features
+
+- ✅ **Pre-commit hooks** - Prevents accidental API key commits
+- ✅ **Secret scanning** - Automated detection via detect-secrets, Gitleaks
+- ✅ **Dependency scanning** - Safety checks for vulnerable packages
+- ✅ **Code security** - Bandit static analysis for Python
+- ✅ **GitHub Actions** - Automated security scans on every commit
+- ✅ **Environment isolation** - Secrets never in code or version control
+- ✅ **CodeQL analysis** - Advanced security vulnerability detection
+
+### 🔧 Setup Security Tools
+
+```bash
+# Install and configure all security tools
+./scripts/setup-security.sh
+```
+
+This sets up:
+- Pre-commit hooks for secret detection
+- Baseline for secret scanning
+- Python security linting (Bandit)
+- Dependency vulnerability scanning (Safety)
+
+### 📋 Security Checklist
+
+Before deploying or contributing:
+
+- [ ] No API keys in code or documentation
+- [ ] `.env` files in `.gitignore`
+- [ ] Pre-commit hooks installed
+- [ ] Different API keys for dev/staging/prod
+- [ ] Secrets stored in GitHub Secrets (for CI/CD)
+- [ ] Security scans passing
+- [ ] Dependencies up to date
+
+### 📚 Security Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [SECURITY.md](SECURITY.md) | Security policy & vulnerability reporting |
+| [GITHUB_SECRETS.md](docs/GITHUB_SECRETS.md) | How to configure GitHub secrets |
+| [.pre-commit-config.yaml](.pre-commit-config.yaml) | Pre-commit hook configuration |
+
+### 🚨 Report Security Issues
+
+**DO NOT** open public issues for security vulnerabilities.
+
+Instead, please email security concerns to the maintainers or use GitHub's private vulnerability reporting:
+- Go to **Security** tab → **Report a vulnerability**
+- Include detailed description and reproduction steps
+- We'll respond within 48 hours
+
+See [SECURITY.md](SECURITY.md) for full policy.
+
+---
+
 ## 🤝 Contributing
 
 PrepSmart follows **Spec-Driven Development** methodology:
@@ -539,6 +599,9 @@ PrepSmart follows **Spec-Driven Development** methodology:
 2. All changes must align with constitutional gates
 3. Tests written BEFORE implementation
 4. User stories implemented independently
+5. **Security first** - Run `./scripts/setup-security.sh` before contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 

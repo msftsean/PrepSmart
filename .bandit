@@ -1,0 +1,6 @@
+[bandit]
+exclude: /tests,/venv,/env,/.venv,/.specify,/spec-kit,/node_modules
+skips: B101,B601
+
+# B101: Test for use of assert (acceptable in tests)
+# B601: Shell injection via Popen (we validate inputs)
